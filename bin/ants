@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+root = File.expand_path("../..", __FILE__)
+$LOAD_PATH << "#{root}/lib" if File.exist?("#{root}/Gemfile")
+
+require "actir"
+
+#开始执行
+Actir::ParallelTests::CLI.new.run(ARGV)

@@ -7,3 +7,11 @@
 /pkg/
 /spec/reports/
 /tmp/
+*.bundle
+*.so
+*.o
+*.a
+*.gem
+.DS_Store
+mkmf.log
+/.travis/
