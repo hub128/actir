@@ -1,5 +1,7 @@
 # Actir
 
+Application Concurrence Test in Ruby.
+
 ## Installation
 
 git clone code and then execute:
