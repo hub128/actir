@@ -15,7 +15,7 @@ require 'actir/version'
 module Actir
   
   #测试用例基础类，读取配置文件定义常量
-  class Test < Test::Unit::TestCase
+  class TestCase < Test::Unit::TestCase
     
     #IP地址的正则表达式
     num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/  
