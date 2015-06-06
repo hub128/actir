@@ -1,9 +1,5 @@
 # Actir
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/actir`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 git clone code and then execute:
@@ -22,7 +18,7 @@ Or install it yourself as:
   &emsp;&emsp;|-config.yaml -- 总体配置文件,test_mode相关的配置项必须要填  
   &emsp;elements  
   &emsp;&emsp;|-components -- 公用页面元素方法  
-  &emsp;&emsp;|-pages -- 页面元素封装的方法.如果是Web页面,可以直接继承自Actir::WebPage,已经封装了部分公用方法  
+  &emsp;&emsp;|-pages -- 页面元素封装的方法,可以继承自Actir::BasicPage,已经封装了部分公用方法  
   &emsp;testcode -- 测试用例,执行之前需要初始化 Actir::Initializer.new(project_path)
               
 2.project_path:测试工程根目录
@@ -43,13 +39,9 @@ Or install it yourself as:
   &emsp;如:browser = Browser.new(type, *args)  
   &emsp;&emsp;&emsp;browser.login_page.xxx (xxx为LoginPage中定义的方法)
 
-## Development
-
-.
-
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/actir/fork )
+1. Fork it ( https://github.com/hub128/actir.git )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
