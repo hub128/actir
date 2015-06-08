@@ -83,7 +83,7 @@ module Actir
             address = Actir::Remote.get_remote_address(1)
           end
         end
-        @browser = Browser.new(:www, :url => address[0], :mode => $mode)
+        @browser = Browser.new(:www, :url => address[0], :mode => $mode, :browser => :chrome)
         @browser.goto "baifubao.com"
         @browser 
       end

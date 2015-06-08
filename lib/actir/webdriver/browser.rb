@@ -62,7 +62,8 @@ class Browser
       else
         #若ENV为空，则读取配置文件，判断有无配置文件
         if File.exist?(config_file) 
-          args[:mode] = $config["config"]["test_mode"]["env"]
+          env = $config["config"]["test_mode"]["env"]
+          args[:mode] = (env == nil) ? :local : env
         else
           args[:mode] = :local
         end
@@ -70,7 +71,8 @@ class Browser
     end
     unless args.has_key?(:browser)
       if File.exist?(config_file) 
-        args[:browser] = $config["config"]["test_mode"]["browser"]
+        browser_type = $config["config"]["test_mode"]["browser"]
+        args[:browser] = (browser_type == nil) ? :chrome : browser_type
       else
         args[:browser] = :chrome
       end
