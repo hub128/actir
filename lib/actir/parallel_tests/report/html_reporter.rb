@@ -1,106 +1,81 @@
+require 'actir/parallel_tests/report/html_formatter'
+
 module Actir
   module ParallelTests
     class HtmlReport
 
-      def initialize(output)
-        super(output)
-        @failed_examples = []
-        @example_group_number = 0
-        @example_number = 0
-        @header_red = nil
-        @printer = HtmlPrinter.new(output)
+      def initialize(file)
+        @testsuites = $testsuites
+        @testsuite_number = 0
+        @testcase_number = 0
+        @failure_number = 0
+        # @duration = 0
+        @formatter = HtmlFormatter.new(file)
+
+        result_print
       end
 
-      def start(notification)
-        super
-        @printer.print_html_start
-        @printer.flush
-      end
+      def result_print
+        # 没有result信息
+        return 0 if @testsuites == nil
 
-      def example_group_started(notification)
-        super
-        @example_group_red = false
-        @example_group_number += 1
-
-        @printer.print_example_group_end unless example_group_number == 1
-        @printer.print_example_group_start(example_group_number,
-                                          notification.group.description,
-                                          notification.group.parent_groups.size)
-        @printer.flush
-      end
-
-      def start_dump(_notification)
-        @printer.print_example_group_end
-        @printer.flush
-      end
-
-      def example_started(_notification)
-        @example_number += 1
-      end
-
-      def example_passed(passed)
-        @printer.move_progress(percent_done)
-        @printer.print_example_passed(passed.example.description, passed.example.execution_result.run_time)
-        @printer.flush
-      end
-
-      def example_failed(failure)
-        @failed_examples << failure.example
-        unless @header_red
-          @header_red = true
-          @printer.make_header_red
+        report_start
+        @testsuites.each do |testsuite|
+          testsuite_print(testsuite)
         end
 
-        unless @example_group_red
-          @example_group_red = true
-          @printer.make_example_group_header_red(example_group_number)
+        summary = {:testcase_count => @testcase_number, :failure_count => @failure_number}
+        summary_print(summary)
+      end
+
+      def report_start
+        @formatter.print_html_start
+        @formatter.flush
+      end
+
+      def testsuite_print(testsuite)
+        @testsuite_red = false
+        @testsuite_number += 1
+        @formatter.print_testsuite_start(@testsuite_number, testsuite[:testsuite_name])
+        testcases = testsuite[:testcases] 
+        testcases.each do |testcase|
+          if(testcase[:succuss] == true)
+            testcase_passed_print(testcase[:testcase_name])
+          else
+            testcase_failed_print(testcase[:testcase_name], testcase[:detail])
+          end
+        end
+        @formatter.print_testsuite_end
+        @formatter.flush
+      end
+
+      def testcase_passed_print(testcase_name)
+        @testcase_number += 1
+        @formatter.print_testcase_passed(testcase_name)
+        @formatter.flush
+      end
+
+      def testcase_failed_print(testcase_name, details)
+        @testcase_number += 1
+        @failure_number += 1
+
+        unless @testsuite_red
+          @testsuite_red = true
+          @formatter.make_testsuite_header_red(@testsuite_number)
         end
 
-        @printer.move_progress(percent_done)
-
-        example = failure.example
-
-        exception = failure.exception
-        exception_details = if exception
-                              {
-                                :message => exception.message,
-                                :backtrace => failure.formatted_backtrace.join("\n")
-                              }
-                            else
-                              false
-                            end
-        extra = extra_failure_content(failure)
-
-        @printer.print_example_failed(
-          example.execution_result.pending_fixed,
-          example.description,
-          example.execution_result.run_time,
-          @failed_examples.size,
-          exception_details,
-          (extra == "") ? false : extra,
-          true
-        )
-        @printer.flush
+        @formatter.print_testcase_failed(testcase_name, details, @failure_number)
+        @formatter.flush
       end
 
-      def example_pending(pending)
-        example = pending.example
 
-        @printer.make_header_yellow unless @header_red
-        @printer.make_example_group_header_yellow(example_group_number) unless @example_group_red
-        @printer.move_progress(percent_done)
-        @printer.print_example_pending(example.description, example.execution_result.pending_message)
-        @printer.flush
-      end
-
-      def dump_summary(summary)
-        @printer.print_summary(
-          summary.duration,
-          summary.example_count,
-          summary.failure_count,
-          summary.pending_count
+      def summary_print(summary)
+        @formatter.print_summary(
+          # summary[:duration],
+          summary[:testcase_count],
+          summary[:failure_count]
         )
-        @printer.flush
+        @formatter.flush
       end
 
     private
@@ -109,37 +84,29 @@ module Actir
       # warning because they are private.
       # rubocop:disable Style/TrivialAccessors
 
-      # The number of the currently running example_group.
-      def example_group_number
-        @example_group_number
-      end
+      # The number of the currently running testsuite.
+      # def testsuite_number
+      #   @testsuite_number
+      # end
 
-      # The number of the currently running example (a global counter).
-      def example_number
-        @example_number
-      end
+      # The number of the currently running testcase (a global counter).
+      # def testcase_number
+      #   @testcase_number
+      # end
       # rubocop:enable Style/TrivialAccessors
 
-      def percent_done
-        result = 100.0
-        if @example_count > 0
-          result = (((example_number).to_f / @example_count.to_f * 1000).to_i / 10.0).to_f
-        end
-        result
-      end
-
-      # Override this method if you wish to output extra HTML for a failed
-      # spec. For example, you could output links to images or other files
+      # Override this method if you wish to file extra HTML for a failed
+      # spec. For testcase, you could file links to images or other files
       # produced during the specs.
-      def extra_failure_content(failure)
-        RSpec::Support.require_rspec_core "formatters/snippet_extractor"
-        backtrace = failure.exception.backtrace.map do |line|
-          RSpec.configuration.backtrace_formatter.backtrace_line(line)
-        end
-        backtrace.compact!
-        @snippet_extractor ||= SnippetExtractor.new
-        "    <pre class=\"ruby\"><code>#{@snippet_extractor.snippet(backtrace)}</code></pre>"
-      end
+      # def extra_failure_content(failure)
+      #   RSpec::Support.require_rspec_core "formatters/snippet_extractor"
+      #   backtrace = failure.exception.backtrace.map do |line|
+      #     RSpec.configuration.backtrace_formatter.backtrace_line(line)
+      #   end
+      #   backtrace.compact!
+      #   @snippet_extractor ||= SnippetExtractor.new
+      #   "    <pre class=\"ruby\"><code>#{@snippet_extractor.snippet(backtrace)}</code></pre>"
+      # end
     end
   end
 end

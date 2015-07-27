@@ -16,7 +16,23 @@ module Actir
   
   #测试用例基础类，读取配置文件定义常量
   class TestCase < Test::Unit::TestCase
-    
+    class << self
+      # $testsuites = []
+      def startup
+        # 执行用例前，将测试套名字和用例名输出
+        suite_name = self.to_s
+        if (suite_name != "Actir::TestCase" && suite_name != "BaseTest")
+          puts "[suite start]"
+          puts "suitname: #{suite_name}\n"
+          test_methods = instance_methods.grep(/^test_/).map {|case_name|case_name.to_s}
+          test_methods.each do |testcase|
+            puts "testcase: #{testcase}\n"
+          end
+          puts "[suite end]"
+        end
+      end
+    end
+
     #IP地址的正则表达式
     num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/  
     ip = /^(#{num}\.){3}#{num}/ 

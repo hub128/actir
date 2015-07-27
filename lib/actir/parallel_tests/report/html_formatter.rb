@@ -5,111 +5,71 @@ module Actir
     class HtmlFormatter
 
       include ERB::Util # For the #h method.
-      def initialize(output)
-        @output = output
+      def initialize(file)
+        @file = file
       end
 
       def print_html_start
-        @output.puts HTML_HEADER
-        @output.puts REPORT_HEADER
+        @file.puts HTML_HEADER
+        @file.puts REPORT_HEADER
       end
 
-      def print_example_group_end
-        @output.puts "  </dl>"
-        @output.puts "</div>"
+
+      def print_testsuite_start(testsuite_id, testsuite_name)
+        @file.puts "<div id=\"div_testsuite_#{testsuite_id}\" class=\"testsuite passed\">"
+        @file.puts "  <dl>"
+        @file.puts "    <dt id=\"testsuite_#{testsuite_id}\" class=\"passed\">#{h(testsuite_name)}</dt>"
       end
 
-      def print_example_group_start(group_id, description, number_of_parents)
-        @output.puts "<div id=\"div_group_#{group_id}\" class=\"example_group passed\">"
-        @output.puts "  <dl #{indentation_style(number_of_parents)}>"
-        @output.puts "  <dt id=\"example_group_#{group_id}\" class=\"passed\">#{h(description)}</dt>"
+      def print_testsuite_end
+        @file.puts "  </dl>"
+        @file.puts "</div>"
       end
 
-      def print_example_passed(description, run_time)
-        formatted_run_time = "%.5f" % run_time
-        @output.puts "    <dd class=\"example passed\">" \
-          "<span class=\"passed_spec_name\">#{h(description)}</span>" \
-          "<span class='duration'>#{formatted_run_time}s</span></dd>"
+      def print_testcase_passed(testcase_name)
+        @file.puts "    <dd class=\"testcase passed\">"
+        @file.puts "      <span class=\"passed_spec_name\">#{h(testcase_name)}</span>"
+        @file.puts "    </dd>"
       end
 
-      # rubocop:disable Style/ParameterLists
-      def print_example_failed(pending_fixed, description, run_time, failure_id,
-                               exception, extra_content, escape_backtrace=false)
-        # rubocop:enable Style/ParameterLists
-        formatted_run_time = "%.5f" % run_time
-
-        @output.puts "    <dd class=\"example #{pending_fixed ? 'pending_fixed' : 'failed'}\">"
-        @output.puts "      <span class=\"failed_spec_name\">#{h(description)}</span>"
-        @output.puts "      <span class=\"duration\">#{formatted_run_time}s</span>"
-        @output.puts "      <div class=\"failure\" id=\"failure_#{failure_id}\">"
-        if exception
-          @output.puts "        <div class=\"message\"><pre>#{h(exception[:message])}</pre></div>"
-          if escape_backtrace
-            @output.puts "        <div class=\"backtrace\"><pre>#{h exception[:backtrace]}</pre></div>"
-          else
-            @output.puts "        <div class=\"backtrace\"><pre>#{exception[:backtrace]}</pre></div>"
-          end
-        end
-        @output.puts extra_content if extra_content
-        @output.puts "      </div>"
-        @output.puts "    </dd>"
+      def print_testcase_failed(testcase_name, backtrace, failure_number)
+        @file.puts "    <dd class=\"testcase failed\">"
+        @file.puts "      <span class=\"failed_spec_name\">#{h(testcase_name)}</span>"
+        @file.puts "      <div id=\"testtab\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
+        @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
+        @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre></div>"
+        @file.puts "      </div>"
+        @file.puts "    </dd>"
       end
 
-      def print_example_pending(description, pending_message)
-        @output.puts "    <dd class=\"example not_implemented\">" \
-          "<span class=\"not_implemented_spec_name\">#{h(description)} " \
-          "(PENDING: #{h(pending_message)})</span></dd>"
-      end
-
-      def print_summary(duration, example_count, failure_count, pending_count)
-        totals =  "#{example_count} example#{'s' unless example_count == 1}, "
+      def print_summary(testcase_count, failure_count)
+        totals =  "#{testcase_count} testcase#{'s' unless testcase_count == 1}, "
         totals << "#{failure_count} failure#{'s' unless failure_count == 1}"
-        totals << ", #{pending_count} pending" if pending_count > 0
 
-        formatted_duration = "%.5f" % duration
+        # formatted_duration = "%.5f" % duration
 
-        @output.puts "<script type=\"text/javascript\">" \
-          "document.getElementById('duration').innerHTML = \"Finished in " \
-          "<strong>#{formatted_duration} seconds</strong>\";</script>"
-        @output.puts "<script type=\"text/javascript\">" \
+        # @file.puts "<script type=\"text/javascript\">" \
+        #   "document.getElementById('duration').innerHTML = \"Finished in " \
+        #   "<strong>#{formatted_duration} seconds</strong>\";</script>"
+        @file.puts "<script type=\"text/javascript\">" \
           "document.getElementById('totals').innerHTML = \"#{totals}\";</script>"
-        @output.puts "</div>"
-        @output.puts "</div>"
-        @output.puts "</body>"
-        @output.puts "</html>"
+        @file.puts "</div>"
+        @file.puts "</div>"
+        @file.puts "</body>"
+        @file.puts "</html>"
+      end
+
+      def make_testsuite_header_red(testsuite_id)
+        @file.puts "    <script type=\"text/javascript\">" \
+                     "makeRed('div_testsuite_#{testsuite_id}');</script>"
+        @file.puts "    <script type=\"text/javascript\">" \
+                     "makeRed('testsuite_#{testsuite_id}');</script>"
       end
 
       def flush
-        @output.flush
+        @file.flush
       end
-
-      def move_progress(percent_done)
-        @output.puts "    <script type=\"text/javascript\">moveProgressBar('#{percent_done}');</script>"
-        @output.flush
-      end
-
-      def make_header_red
-        @output.puts "    <script type=\"text/javascript\">makeRed('test-header');</script>"
-      end
-
-      def make_header_yellow
-        @output.puts "    <script type=\"text/javascript\">makeYellow('test-header');</script>"
-      end
-
-      def make_example_group_header_red(group_id)
-        @output.puts "    <script type=\"text/javascript\">" \
-                     "makeRed('div_group_#{group_id}');</script>"
-        @output.puts "    <script type=\"text/javascript\">" \
-                     "makeRed('example_group_#{group_id}');</script>"
-      end
-
-      def make_example_group_header_yellow(group_id)
-        @output.puts "    <script type=\"text/javascript\">" \
-                     "makeYellow('div_group_#{group_id}');</script>"
-        @output.puts "    <script type=\"text/javascript\">" \
-                     "makeYellow('example_group_#{group_id}');</script>"
-      end
-
+      
       private
 
       def indentation_style(number_of_parents)
@@ -122,13 +82,12 @@ module Actir
 
 <div id="test-header">
   <div id="label">
-    <h1>test Code Examples</h1>
+    <h1>Test Cases Result</h1>
   </div>
 
   <div id="display-filters">
     <input id="passed_checkbox"  name="passed_checkbox"  type="checkbox" checked="checked" onchange="apply_filters()" value="1" /> <label for="passed_checkbox">Passed</label>
     <input id="failed_checkbox"  name="failed_checkbox"  type="checkbox" checked="checked" onchange="apply_filters()" value="2" /> <label for="failed_checkbox">Failed</label>
-    <input id="pending_checkbox" name="pending_checkbox" type="checkbox" checked="checked" onchange="apply_filters()" value="3" /> <label for="pending_checkbox">Pending</label>
   </div>
 
   <div id="summary">
@@ -155,38 +114,20 @@ function removeClass(element_id, classname) {
   elem.className = classlist;
 }
 
-function moveProgressBar(percentDone) {
-  document.getElementById("test-header").style.width = percentDone +"%";
-}
-
 function makeRed(element_id) {
   removeClass(element_id, 'passed');
-  removeClass(element_id, 'not_implemented');
   addClass(element_id,'failed');
-}
-
-function makeYellow(element_id) {
-  var elem = document.getElementById(element_id);
-  if (elem.className.indexOf("failed") == -1) {  // class doesn't includes failed
-    if (elem.className.indexOf("not_implemented") == -1) { // class doesn't include not_implemented
-      removeClass(element_id, 'passed');
-      addClass(element_id,'not_implemented');
-    }
-  }
 }
 
 function apply_filters() {
   var passed_filter = document.getElementById('passed_checkbox').checked;
   var failed_filter = document.getElementById('failed_checkbox').checked;
-  var pending_filter = document.getElementById('pending_checkbox').checked;
 
-  assign_display_style("example passed", passed_filter);
-  assign_display_style("example failed", failed_filter);
-  assign_display_style("example not_implemented", pending_filter);
+  assign_display_style("testcase passed", passed_filter);
+  assign_display_style("testcase failed", failed_filter);
 
-  assign_display_style_for_group("example_group passed", passed_filter);
-  assign_display_style_for_group("example_group not_implemented", pending_filter, pending_filter || passed_filter);
-  assign_display_style_for_group("example_group failed", failed_filter, failed_filter || pending_filter || passed_filter);
+  assign_display_style_for_group("testsuite passed", passed_filter);
+  assign_display_style_for_group("testsuite failed", failed_filter, failed_filter || pending_filter || passed_filter);
 }
 
 function get_display_style(display_flag) {
@@ -216,6 +157,57 @@ function assign_display_style_for_group(classname, display_flag, subgroup_flag) 
     } else {
       elems[i].style.display = display_style_mode;
     }
+  }
+}
+
+function $G(Read_Id) { return document.getElementById(Read_Id) }
+
+function Effect(ObjectId,parentId){
+var Obj_Display = $G(ObjectId).style.display;
+  if (Obj_Display == 'none'){
+  Start(ObjectId,'Opens');
+  $G(parentId).innerHTML = "<a class=\\"expand\\" href=# onClick=javascript:Effect('"+ObjectId+"','"+parentId+"');>-</a>"
+  }else{ 
+  Start(ObjectId,'Close');
+  $G(parentId).innerHTML = "<a class=\\"expand\\" href=# onClick=javascript:Effect('"+ObjectId+"','"+parentId+"');>+</a>"
+  }
+}
+
+function Start(ObjId,method){
+  var BoxHeight = $G(ObjId).offsetHeight;
+  var MinHeight = 5;
+  var MaxHeight = 130;
+  var BoxAddMax = 1;
+  var Every_Add = 0.15;
+  var Reduce    = (BoxAddMax - Every_Add);
+  var Add       = (BoxAddMax + Every_Add);
+
+  if (method == "Close"){
+    var Alter_Close = function(){
+      BoxAddMax /= Reduce;
+      BoxHeight -= BoxAddMax;
+      if (BoxHeight <= MinHeight){
+        $G(ObjId).style.display = "none";
+        window.clearInterval(BoxAction);
+      }
+      else $G(ObjId).style.height = BoxHeight;
+    }
+    var BoxAction = window.setInterval(Alter_Close,1);
+  }
+
+  else if (method == "Opens"){
+    var Alter_Opens = function(){
+      BoxAddMax *= Add;
+      BoxHeight += BoxAddMax;
+      if (BoxHeight >= MaxHeight){
+        $G(ObjId).style.height = MaxHeight;
+        window.clearInterval(BoxAction);
+      }else{
+        $G(ObjId).style.display= "block";
+        $G(ObjId).style.height = BoxHeight;
+      }
+    }
+    var BoxAction = window.setInterval(Alter_Opens,1);
   }
 }
 EOF
@@ -259,10 +251,12 @@ EOF
   font-size: 1.2em;
 }
 
-.example_group {
+.testsuite {
   margin: 0 10px 5px;
   background: #fff;
 }
+
+.expand {text-decoration:none;}
 
 dl {
   margin: 0; padding: 0 0 5px;
@@ -288,49 +282,19 @@ dd .duration {
   float:right;
 }
 
-dd.example.passed {
+dd.testcase.passed {
   border-left: 5px solid #65C400;
   border-bottom: 1px solid #65C400;
   background: #DBFFB4; color: #3D7700;
 }
 
-dd.example.not_implemented {
-  border-left: 5px solid #FAF834;
-  border-bottom: 1px solid #FAF834;
-  background: #FCFB98; color: #131313;
-}
-
-dd.example.pending_fixed {
-  border-left: 5px solid #0000C2;
-  border-bottom: 1px solid #0000C2;
-  color: #0000C2; background: #D3FBFF;
-}
-
-dd.example.failed {
+dd.testcase.failed {
   border-left: 5px solid #C20000;
   border-bottom: 1px solid #C20000;
   color: #C20000; background: #FFFBD3;
 }
 
-
-dt.not_implemented {
-  color: #000000; background: #FAF834;
-}
-
-dt.pending_fixed {
-  color: #FFFFFF; background: #C40D0D;
-}
-
 dt.failed {
-  color: #FFFFFF; background: #C40D0D;
-}
-
-
-#test-header.not_implemented {
-  color: #000000; background: #FAF834;
-}
-
-#test-header.pending_fixed {
   color: #FFFFFF; background: #C40D0D;
 }
 

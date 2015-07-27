@@ -1,6 +1,7 @@
 require 'optparse'
 require 'tempfile'
 require 'actir'
+require 'actir/parallel_tests/report/html_reporter'
 
 module Actir
   module ParallelTests
@@ -84,7 +85,7 @@ module Actir
           show_process_serialize(num_processes, options)
 
           #输出最终的执行结果
-          report_results(test_results)
+          report_results(test_results, options)
         end
 
         abort final_fail_message if any_test_failed?(test_results)
@@ -107,12 +108,14 @@ module Actir
         lock.flock File::LOCK_UN
       end
 
-      def report_results(test_results)
+      def report_results(test_results, options)
         results = @runner.find_results(test_results.map { |result| result[:stdout] }*"")
         puts division_str
         puts pre_str + @runner.summarize_results(results)
+
+        #add by shanmao
         #生成详细报告
-        #detail_report(@runner.summarize_results(results),file_path)
+        detail_report if (options[:report] == true)
         #puts pre_str + any_test_failed?(test_results).to_s
       end
 
@@ -188,6 +191,7 @@ module Actir
           opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
           opts.on("--verbose", "Print more output") { options[:verbose] = true }
           opts.on("--log", "record exec result to logfile") { options[:log] = true}
+          opts.on("--report", "make a report to show the test result") { options[:report] = true}
           opts.on("--remote", "run testcase in remote environment") { options[:mode] = :remote }
           opts.on("--local", "run testcase in local environment") { options[:mode] = :local }
           # 填写预发环境，目前只支持bjpre2-4，别的后续再添加
@@ -313,10 +317,15 @@ module Actir
         "---------------------------------------------------------------------------------------------\n"
       end
 
-      # def detail_report(output)
-        
-      #   HtmlPrinter.new(file)
-      # end
+      # 生成详细报告
+      def detail_report
+        @report_path = File.join($project_path, 'test_report')
+        Dir::mkdir(@report_path) if not File.directory?(@report_path)
+        time = Time.now.strftime('%Y%m%d_%H%M%S')
+        file_path = File.join(@report_path, "REPORT_#{time}.html")
+        file = File.new(file_path,"w")
+        report = HtmlReport.new(file)
+      end
 
     end
   end

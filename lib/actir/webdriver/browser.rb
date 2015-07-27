@@ -53,6 +53,30 @@ class Browser
     define_page_method
   end
 
+  def goto(uri)
+    hasLoaded = 0
+    for i in 1..3
+      begin 
+      Timeout::timeout(10)  do
+        puts "Time #{i}"
+        super(uri)
+
+        if self.execute_script("return document.readyState;") == "complete"
+          puts "has completed"
+          hasLoaded = 1
+          break
+        end
+      end
+      rescue Timeout::Error => e
+        puts "Page load timed out: #{e}"
+      end
+
+      if hasLoaded == 1
+        break
+      end
+    end
+  end
+
   # 初始化入参
   def init_args(args = {})
     unless args.has_key?(:mode)
