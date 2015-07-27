@@ -145,9 +145,13 @@ module Actir
         month = $1
         day = $2
         #若果是1-9,则在前面加个0
-        month = "0" + month if month.to_i <= 9 && month.to_i >= 1
-        day = "0" + day if day.to_i <= 9 && day.to_i >= 1
-        month + "-" + day
+        if month == "" and day == ""
+          return ""
+        else
+          month = "0" + month if month.to_i <= 9 && month.to_i >= 1
+          day = "0" + day if day.to_i <= 9 && day.to_i >= 1
+          month + "-" + day
+        end
       end
       
       # 多进程操作文件时加锁
