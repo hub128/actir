@@ -97,6 +97,7 @@ module Actir
 
       # 获取cookies
       def get_baifubao_cookies
+        sleep 5
         id =  @browser.cookies[:BAIDUID][:value]
         ss =  @browser.cookies[:BDUSS][:value]
         @browser.close
