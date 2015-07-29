@@ -145,7 +145,7 @@ module Actir
         month = $1
         day = $2
         #若果是1-9,则在前面加个0
-        if month == "" and day == ""
+        if month == "" || day == "" || month == nil || day == nil
           return ""
         else
           month = "0" + month if month.to_i <= 9 && month.to_i >= 1
