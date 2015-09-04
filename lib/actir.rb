@@ -4,6 +4,7 @@ require 'selenium-webdriver'
 lib = File.dirname(__FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'actir/config'
+require 'actir/data'
 require 'actir/initializer'
 require 'actir/remote'
 require 'actir/basic_page'

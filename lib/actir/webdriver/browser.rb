@@ -58,11 +58,11 @@ class Browser
     for i in 1..3
       begin 
       Timeout::timeout(10)  do
-        puts "Time #{i}"
+        # puts "Time #{i}"
         super(uri)
 
         if self.execute_script("return document.readyState;") == "complete"
-          puts "has completed"
+          # puts "has completed"
           hasLoaded = 1
           break
         end
