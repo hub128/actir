@@ -29,11 +29,19 @@ module Actir
             #require_list = test_files.map { |file| file.sub(" ", "\\ ") }.join(" ")
             #cmd = "#{executable} -Itest -e '%w[#{require_list}].each { |f| require %{./\#{f}}}' #{address}"
             #execute_command(cmd, process_number, num_processes, options)
+
             cmd = ""
-            test_files.each do |file|
-              cmd += "#{executable} #{file} #{address};"
-            end 
-            cmd += "\n"
+            #如果有-n选项，则只运行指定的测试用例
+            if options[:testcase]
+              raise "more than one file was choosen" if test_files.size != 1 
+              cmd = "#{executable} #{test_files[0]} -n #{options[:testcase]} #{address}"
+            else
+              test_files.each do |file|
+                cmd += "#{executable} #{file} #{address};"
+              end 
+              cmd += "\n"
+            end
+
             result = execute_command(cmd, process_number, num_processes, options)
             #记录log
             if options[:log]

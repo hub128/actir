@@ -137,7 +137,7 @@ module Actir
 
           #获取失败用例名的正则
           def failure_tests_name_reg
-            /(test.+)\(.+\)/
+            /(test.+)\(.+\):/
           end
 
           #获取失败数据的正则

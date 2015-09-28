@@ -60,7 +60,13 @@ module Actir
 
           #更新百度支付-百付宝的cookies
           if options[:update]
-            Actir::CookiesBaidu.update_all
+            begin
+              Actir::CookiesBaidu.update_all
+            rescue Exception => e
+              #若更新baidu_cookies失败，则打印错误信息，并中断测试执行
+              puts e.message
+              abort "update baidu cookies failed!!!"
+            end
           end
 
           #计算重跑次数
@@ -170,7 +176,8 @@ module Actir
             Usage: ruby [switches] [--] [files & folders]
             Options are:
           BANNER
-          opts.on("-n [PROCESSES]", Integer, "How many processes to use, default: 1") { |n| options[:count] = n }
+          # opts.on("-n [PROCESSES]", Integer, "How many processes to use, default: 1") { |n| options[:count] = n }
+          opts.on("-n [TESTCASE]", String, "Run this testcase") { |casename| options[:testcase] = casename }
           opts.on("--group-by [TYPE]", <<-TEXT.gsub(/^          /, '')
           group tests by:
                       found - order of finding files
