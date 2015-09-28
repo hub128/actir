@@ -60,7 +60,13 @@ module Actir
 
           #更新百度支付-百付宝的cookies
           if options[:update]
-            Actir::CookiesBaidu.update_all
+            begin
+              Actir::CookiesBaidu.update_all
+            rescue Exception => e
+              #若更新baidu_cookies失败，则打印错误信息，并中断测试执行
+              puts e.message
+              abort "update baidu cookies failed!!!"
+            end
           end
 
           #计算重跑次数
