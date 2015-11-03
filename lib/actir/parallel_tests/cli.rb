@@ -331,10 +331,11 @@ module Actir
 
       # 生成详细报告
       def detail_report
-        @report_path = File.join($project_path, 'test_report')
+        @report_path = File.join($project_path, 'report')
         Dir::mkdir(@report_path) if not File.directory?(@report_path)
         time = Time.now.strftime('%Y%m%d_%H%M%S')
-        file_path = File.join(@report_path, "REPORT_#{time}.html")
+        # file_path = File.join(@report_path, "REPORT_#{time}.html")
+        file_path = File.join(@report_path, "index.html")
         file = File.new(file_path,"w")
         report = HtmlReport.new(file)
       end
