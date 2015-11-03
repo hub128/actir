@@ -1,7 +1,7 @@
 module Actir
   module ParallelTests
     module Test
-      class Rerun < Runner
+      class Rerunner < Runner
 
         class << self
           
@@ -75,6 +75,10 @@ module Actir
               log_str = "[re_run_tests]: \n" + result[:stdout]
               Actir::ParallelTests::Test::Logger.log(log_str, process_number)
             end
+
+            #从result中获取执行结果用于生成测试报告
+            Actir::ParallelTests::Test::Result.get_testsuite_detail(result, :rerunner)
+
             return result
           end
 
@@ -86,11 +90,11 @@ module Actir
             testfile = ""
             result_array.each do |result|
               #取出执行失败的用例文件名称和用例名称
-              case result
-              when failure_tests_name_reg
+              if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg)
                 #范例:"testhehe(TestHehe)"
                 testcase = $1
-              when failure_tests_file_reg
+              end
+              if result =~ failure_tests_file_reg
                 #范例:"testcode/test_tt/test_hehe.rb:8:in `xxxx'"
                 testfile = $1
               end
@@ -126,18 +130,23 @@ module Actir
 
           #判断是否有用例失败
           def any_test_failed?(result)
-            result[:exit_status] != 0
+            Actir::ParallelTests::Test::Result.any_test_failed?(result)
+          end
+
+          #获取错误用例名的正则
+          def error_tests_name_reg
+            Actir::ParallelTests::Test::Result.error_tests_name_reg
+          end
+
+          #获取失败用例名的正则
+          def failure_tests_name_reg
+            Actir::ParallelTests::Test::Result.failure_tests_name_reg
           end
 
           #获取失败用例文件名的正则
           def failure_tests_file_reg
             /(.+\/test.+rb):\d+:in\s`.+'/
             #/^Loaded\ssuite\s(.+)/
-          end
-
-          #获取失败用例名的正则
-          def failure_tests_name_reg
-            /(test.+)\(.+\):/
           end
 
           #获取失败数据的正则

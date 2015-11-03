@@ -48,6 +48,10 @@ module Actir
               log_str = "[run_tests]: \n" + result[:stdout]
               Actir::ParallelTests::Test::Logger.log(log_str, process_number)
             end
+
+            #从result中获取执行结果用于生成测试报告
+            Actir::ParallelTests::Test::Result.get_testsuite_detail(result)
+
             result
           end
 
@@ -97,13 +101,6 @@ module Actir
             end.join(separator)
             cmd = "#{exports}#{separator}#{cmd}"
             output = open("|#{cmd}", "r") { |output| capture_output(output, silence) }
-
-            #modify by shanmao
-            #获取执行的测试套详细信息
-            get_testsuite_detail(output)
-            #获取失败的用例的详情
-            get_testfailed_detail(output)
-
             #modify by Hub
             #exitstatus = $?.exitstatus
             #"$?.exitstatus" 返回的值有时有问题，不能明确标示用例执行结果是否成功
@@ -147,41 +144,6 @@ module Actir
             end
           end
           
-          #
-          # 通过结果判断测试套的详细信息
-          # 将测试套和测试用例的详细信息写入全局变量$testsuites中
-          #
-          def get_testsuite_detail output
-            $testsuites = [] unless $testsuites
-            output.scan(/^(\[suite start\])([^\.][^E]*)(\[suite end\])$/).each do |suite|
-              suitename = suite[1].scan(/^(suitname:\s*)([\d\w]*)/)[0][1]
-              cases = suite[1].scan(/^(testcase:\s*)([\d\w]*)/).inject([]) do |cases,testcase|
-                cases << {:testcase_name => testcase[1], :succuss => true, :detail => nil}
-              end
-              # 如果testsuites中已存在此用例的信息，说明这个用例执行了rerun，就不再次添加了
-              is_case_exist = $testsuites.inject(false) do |is_case_exist, testsuite|
-                if testsuite.has_value?(suitename)
-                  is_case_exist = true
-                  break
-                end
-                is_case_exist
-              end
-              if(is_case_exist == false)
-                testsuite = {:testsuite_name => suitename, :testcases =>cases}
-                $testsuites << testsuite
-              end
-            end
-            # p $testsuites
-          end
-
-          #
-          # 通过结果判断失败用例，获取失败用例的详细信息
-          # 将测试套和测试用例的详细信息写入全局变量$testsuites中
-          #
-          def get_testfailed_detail output
-
-          end
-
           #
           # 通过结果判断是否有用例失败
           # 返回失败用例的数目 

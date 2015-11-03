@@ -18,7 +18,7 @@ module Actir
       def print_testsuite_start(testsuite_id, testsuite_name)
         @file.puts "<div id=\"div_testsuite_#{testsuite_id}\" class=\"testsuite passed\">"
         @file.puts "  <dl>"
-        @file.puts "    <dt id=\"testsuite_#{testsuite_id}\" class=\"passed\">#{h(testsuite_name)}</dt>"
+        @file.puts "    <dt id=\"testsuite_#{testsuite_id}\" class=\"passed\">[Testsuite]: #{h(testsuite_name)}</dt>"
       end
 
       def print_testsuite_end
@@ -28,14 +28,14 @@ module Actir
 
       def print_testcase_passed(testcase_name)
         @file.puts "    <dd class=\"testcase passed\">"
-        @file.puts "      <span class=\"passed_spec_name\">#{h(testcase_name)}</span>"
+        @file.puts "      <span class=\"passed_spec_name\">[Testcase]: #{h(testcase_name)}</span>"
         @file.puts "    </dd>"
       end
 
       def print_testcase_failed(testcase_name, backtrace, failure_number)
         @file.puts "    <dd class=\"testcase failed\">"
-        @file.puts "      <span class=\"failed_spec_name\">#{h(testcase_name)}</span>"
-        @file.puts "      <div id=\"testtab\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
+        @file.puts "      <span class=\"failed_spec_name\">[testcase]: #{h(testcase_name)}</span>"
+        @file.puts "      <div id=\"testtab_#{failure_number}\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
         @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
         @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre></div>"
         @file.puts "      </div>"
@@ -44,7 +44,7 @@ module Actir
 
       def print_summary(testcase_count, failure_count)
         totals =  "#{testcase_count} testcase#{'s' unless testcase_count == 1}, "
-        totals << "#{failure_count} failure#{'s' unless failure_count == 1}"
+        totals << "#{failure_count} failure#{'s' unless failure_count <= 1 }"
 
         # formatted_duration = "%.5f" % duration
 
@@ -82,7 +82,7 @@ module Actir
 
 <div id="test-header">
   <div id="label">
-    <h1>Test Cases Result</h1>
+    <h1>UI-Test Report</h1>
   </div>
 
   <div id="display-filters">
@@ -215,7 +215,7 @@ EOF
 
       GLOBAL_STYLES = <<-EOF
 #test-header {
-  background: #65C400; color: #fff; height: 4em;
+  background: #03b401; color: #fff; height: 4em;
 }
 
 .test-report h1 {
@@ -265,7 +265,7 @@ dl {
 
 dt {
   padding: 3px;
-  background: #65C400;
+  background: #03b401;
   color: #fff;
   font-weight: bold;
 }
@@ -283,8 +283,8 @@ dd .duration {
 }
 
 dd.testcase.passed {
-  border-left: 5px solid #65C400;
-  border-bottom: 1px solid #65C400;
+  border-left: 5px solid #03b401;
+  border-bottom: 1px solid #03b401;
   background: #DBFFB4; color: #3D7700;
 }
 

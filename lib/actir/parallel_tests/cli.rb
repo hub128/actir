@@ -82,7 +82,7 @@ module Actir
             result = run_tests(group, p_num, num_processes, options, address[p_num])
             #从结果中取出失败用例重跑
             if ( result[:exit_status] != 0 ) && ( re_run_times > 0 )
-              result = Actir::ParallelTests::Test::Rerun.re_run_tests(result, p_num, num_processes, options, address[p_num], re_run_times)
+              result = re_run_tests(result, p_num, num_processes, options, address[p_num], re_run_times)
             end
             result
           end
@@ -104,6 +104,10 @@ module Actir
           #puts pre_str + "ready to exec #{group}"
           @runner.run_tests(group, process_number, num_processes, options, address)
         end
+      end
+
+      def re_run_tests(result, process_number, num_processes, options, address, re_run_times)
+        Actir::ParallelTests::Test::Rerunner.re_run_tests(result, process_number, num_processes, options, address, re_run_times)
       end
 
       def report_output(result, lock)
@@ -268,8 +272,9 @@ module Actir
 
       def load_runner(type)
         require "actir/parallel_tests/#{type}/runner"
-        require "actir/parallel_tests/#{type}/re_run"
-        require "actir/parallel_tests/test/logger"
+        require "actir/parallel_tests/#{type}/rerunner"
+        require "actir/parallel_tests/#{type}/logger"
+        require "actir/parallel_tests/#{type}/result"
         runner_classname = type.split("_").map(&:capitalize).join.sub("Rspec", "RSpec")
         klass_name = "Actir::ParallelTests::#{runner_classname}::Runner"
         klass_name.split('::').inject(Object) { |x, y| x.const_get(y) }

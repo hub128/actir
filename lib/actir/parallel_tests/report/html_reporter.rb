@@ -24,7 +24,8 @@ module Actir
           testsuite_print(testsuite)
         end
 
-        summary = {:testcase_count => @testcase_number, :failure_count => @failure_number}
+        summary = {:testcase_count => @testcase_number, 
+                   :failure_count => @failure_number}
         summary_print(summary)
       end
 
@@ -39,7 +40,7 @@ module Actir
         @formatter.print_testsuite_start(@testsuite_number, testsuite[:testsuite_name])
         testcases = testsuite[:testcases] 
         testcases.each do |testcase|
-          if(testcase[:succuss] == true)
+          if(testcase[:success] == true)
             testcase_passed_print(testcase[:testcase_name])
           else
             testcase_failed_print(testcase[:testcase_name], testcase[:detail])
