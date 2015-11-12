@@ -27,25 +27,26 @@ module Actir
           # @return [String] 执行结果字符串
           #
           def re_run_tests(test_result, process_number, num_processes, options, address, times)
-              #根据重跑次数重新执行失败用例
-              result = re_run(test_result, process_number, num_processes, options, address, times)
-              #从老的执行结果输出中提取出相关数据
-              old_result = summarize_results(find_results(test_result[:stdout]))
-              #puts "old_result : " + old_result
-              #从新的执行结果中提取出数据,并算出总数
-              #因为若有多个失败用例就有多个执行结果
-              new_result = summarize_results(find_results(result[:stdout]))
-              #puts "new_result : " + new_result
-              #刷新最终的执行结果
-              if old_result == nil || old_result == ""
-                puts "[Debug] test_result : "
-                puts test_result
-              end
-              if new_result == nil || new_result == ""
-                puts "[Debug] result : "
-                puts result
-              end
-              combine_tests_results(old_result, new_result)
+            @result = load_result
+            #根据重跑次数重新执行失败用例
+            result = re_run(test_result, process_number, num_processes, options, address, times)
+            #从老的执行结果输出中提取出相关数据
+            old_result = summarize_results(find_results(test_result[:stdout]))
+            #puts "old_result : " + old_result
+            #从新的执行结果中提取出数据,并算出总数
+            #因为若有多个失败用例就有多个执行结果
+            new_result = summarize_results(find_results(result[:stdout]))
+            #puts "new_result : " + new_result
+            #刷新最终的执行结果
+            if old_result == nil || old_result == ""
+              puts "[Debug] test_result : "
+              puts test_result
+            end
+            if new_result == nil || new_result == ""
+              puts "[Debug] result : "
+              puts result
+            end
+            combine_tests_results(old_result, new_result)
           end
           
           private
@@ -56,7 +57,10 @@ module Actir
               #先获取失败用例信息
               tests = capture_failures_tests(test_result)
               cmd = ""
-              tests.each do |testcase, testfile|
+              tests.each do |unique_testname|
+                # 从combine的测试用例名称中获取测试文件名称和测试用例名称
+                testfile = @result.get_testfile_from_unique(unique_testname)
+                testcase = @result.get_testcase_from_unique(unique_testname)
                 #输出一些打印信息
                 puts "[ Re_Run ] - [ #{testfile} -n #{testcase} ] - Left #{times-1} times - in Process[#{process_number}]"
                 cmd += "#{executable} #{testfile} #{address} -n #{testcase};"
@@ -77,35 +81,42 @@ module Actir
             end
 
             #从result中获取执行结果用于生成测试报告
-            Actir::ParallelTests::Test::Result.get_testsuite_detail(result, :rerunner)
+            @result.get_testsuite_detail(result, :rerunner)
 
             return result
           end
 
           #从输出内容中获取失败用例文件名以及用例名称
           def capture_failures_tests(test_result)
-            result_array = test_result[:stdout].split("\n")
-            failure_tests_hash = {}
-            testcase = ""
-            testfile = ""
-            result_array.each do |result|
-              #取出执行失败的用例文件名称和用例名称
-              if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg)
-                #范例:"testhehe(TestHehe)"
-                testcase = $1
-              end
-              if result =~ failure_tests_file_reg
-                #范例:"testcode/test_tt/test_hehe.rb:8:in `xxxx'"
-                testfile = $1
-              end
-              #至于为什么采用testcase => testfile的形式是因为…文件名会重复
-              if testcase != "" && testfile != "" 
-                failure_tests_hash[testcase] = testfile
-                testcase = ""
-                testfile = ""
-              end
-            end
-            failure_tests_hash
+            failure_tests = []
+            failure_tests_hash = @result.get_testfailed_info(test_result)
+            # 过滤报错信息，只需要用例名称和文件名称
+            failure_tests_hash.each do |testcase, failure_info|
+              failure_tests << testcase
+            end 
+            failure_tests
+            # result_array = test_result[:stdout].split("\n")
+            # failure_tests_hash = {}
+            # testcase = ""
+            # testfile = ""
+            # result_array.each do |result|
+            #   #取出执行失败的用例文件名称和用例名称
+            #   if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg)
+            #     #范例:"testhehe(TestHehe)"
+            #     testcase = $1
+            #   end
+            #   if result =~ failure_tests_file_reg
+            #     #范例:"testcode/test_tt/test_hehe.rb:8:in `xxxx'"
+            #     testfile = $1
+            #   end
+            #   #至于为什么采用testcase => testfile的形式是因为…文件名会重复
+            #   if testcase != "" && testfile != "" 
+            #     failure_tests_hash[testcase] = testfile
+            #     testcase = ""
+            #     testfile = ""
+            #   end
+            # end
+            # failure_tests_hash
           end
 
           #组合出最新的执行结果
@@ -130,17 +141,17 @@ module Actir
 
           #判断是否有用例失败
           def any_test_failed?(result)
-            Actir::ParallelTests::Test::Result.any_test_failed?(result)
+            @result.any_test_failed?(result)
           end
 
           #获取错误用例名的正则
           def error_tests_name_reg
-            Actir::ParallelTests::Test::Result.error_tests_name_reg
+            @result.error_tests_name_reg
           end
 
           #获取失败用例名的正则
           def failure_tests_name_reg
-            Actir::ParallelTests::Test::Result.failure_tests_name_reg
+            @result.failure_tests_name_reg
           end
 
           #获取失败用例文件名的正则
@@ -152,6 +163,13 @@ module Actir
           #获取失败数据的正则
           def failure_error_reg
             /((\d+)\sfailure.*,\s(\d+)\serror)/
+          end
+
+          # 加载result类
+          def load_result
+            require "actir/parallel_tests/test/result"
+            klass_name = "Actir::ParallelTests::Test::Result"
+            klass_name.split('::').inject(Object) { |x, y| x.const_get(y) }
           end
 
         end

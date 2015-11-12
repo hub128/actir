@@ -34,6 +34,7 @@ class Browser
     @browser_type = args[:browser]
     @agent = args[:agent]
     @env = args[:mode]
+    @window_size = args[:window_size]
     if @env == :remote
       @url = if args[:url]
         "http://#{args[:url]}/wd/hub"
@@ -79,13 +80,14 @@ class Browser
 
   # 初始化入参
   def init_args(args = {})
+    config_exist = File.exist?(config_file)
     unless args.has_key?(:mode)
       #若通过actir执行测试用例，则会配置ENV的模式
       if ENV["mode"]
         args[:mode] = ENV["mode"].to_sym
       else
         #若ENV为空，则读取配置文件，判断有无配置文件
-        if File.exist?(config_file) 
+        if config_exist
           env = $config["config"]["test_mode"]["env"]
           args[:mode] = (env == nil) ? :local : env
         else
@@ -94,11 +96,23 @@ class Browser
       end
     end
     unless args.has_key?(:browser)
-      if File.exist?(config_file) 
+      if config_exist 
         browser_type = $config["config"]["test_mode"]["browser"]
         args[:browser] = (browser_type == nil) ? :chrome : browser_type
       else
         args[:browser] = :chrome
+      end
+    end
+    unless args.has_key?(:window_size)
+      if config_exist
+        window_size = $config["config"]["window_size"]
+        if window_size != nil
+          width = window_size["width"]
+          height = window_size["height"]
+        end
+        args[:window_size] = (width == nil || height == nil) ? nil : window_size
+      else
+        args[:window_size] = nil
       end
     end
     args[:agent] = :iphone  unless args.has_key?(:agent)
@@ -128,6 +142,8 @@ class Browser
       browser.window.resize_to(PHANTOMJS_SIZE["width"], PHANTOMJS_SIZE["height"])
     elsif @env == :remote
       browser.window.resize_to(REMOTE_SIZE["width"], REMOTE_SIZE["height"])
+    elsif @window_size != nil
+      browser.window.resize_to(@window_size["width"], @window_size["height"])
     end
     browser
   end

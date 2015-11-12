@@ -34,7 +34,7 @@ module Actir
 
       def print_testcase_failed(testcase_name, backtrace, failure_number)
         @file.puts "    <dd class=\"testcase failed\">"
-        @file.puts "      <span class=\"failed_spec_name\">[testcase]: #{h(testcase_name)}</span>"
+        @file.puts "      <span class=\"failed_spec_name\">[Testcase]: #{h(testcase_name)}</span>"
         @file.puts "      <div id=\"testtab_#{failure_number}\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
         @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
         @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre></div>"

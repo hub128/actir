@@ -284,11 +284,11 @@ module Actir
         runs = (0...num_processes).to_a
         results = if options[:non_parallel]
           runs.map do |i|
-            Actir::ParallelTests::Test::Runner.execute_command(command, i, num_processes, options)
+            @runner.execute_command(command, i, num_processes, options)
           end
         else
           execute_in_parallel(runs, num_processes, options) do |i|
-            Actir::ParallelTests::Test::Runner.execute_command(command, i, num_processes, options)
+            @runner.execute_command(command, i, num_processes, options)
           end
         end.flatten
 
