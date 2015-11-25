@@ -14,10 +14,17 @@ module Actir
             $testsuites = [] unless $testsuites
             if mode == :runner
               get_run_test_info(test_result)
+              #如果有用例失败，则记录详细信息，否则不需要
+              if any_test_failed?(test_result)
+                record_detail(test_result)
+              end
+            else
+              record_detail(test_result)
             end
-            #如果有用例失败，则记录详细信息，否则不需要
-            if any_test_failed?(test_result)
-              failure_detail_hash = get_testfailed_info(test_result)
+          end
+
+          def record_detail(test_result)
+            failure_detail_hash = get_testfailed_info(test_result)
               $testsuites.each do |testsuite|
                 testcases = testsuite[:testcases] 
                 testcases.each do |testcase|
@@ -26,7 +33,7 @@ module Actir
                   failure_detail_hash.each do |testcase_failure, detail|
                     if testcase_failure == testcase[:testcase_name]
                       testcase[:success] = false
-                      testcase[:detail] = detail
+                      testcase[:detail] = detail 
                       fail_flag = 1
                       #从hash表中移除 
                       failure_detail_hash.delete(testcase_failure)
@@ -38,7 +45,6 @@ module Actir
                   end
                 end
               end
-            end
           end
 
           def get_run_test_info(test_result)
@@ -177,16 +183,13 @@ module Actir
           end
 
           def get_testfile_from_unique(unique_testname)
-            testfile_name = ""
             unique_testname =~ /(.*)\:(.*)/
-            testfile_name = $1       
+            $1       
           end
 
           def get_testcase_from_unique(unique_testname)
-            p unique_testname
-            testcase_name = ""
             unique_testname =~ /(.*)\:(.*)/
-            testcase_name = $2        
+            $2        
           end
 
         end

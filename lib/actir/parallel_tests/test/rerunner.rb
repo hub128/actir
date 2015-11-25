@@ -67,6 +67,8 @@ module Actir
               end 
               #执行cmd,获取执行结果输出
               result = execute_command(cmd, process_number, num_processes, options)
+              #从result中获取执行结果用于生成测试报告
+              @result.get_testsuite_detail(result, :rerunner)
               #先判断是否还是失败，且未满足重试次数
               times -= 1
               if any_test_failed?(result) && times > 0 
@@ -80,9 +82,6 @@ module Actir
               Actir::ParallelTests::Test::Logger.log(log_str, process_number)
             end
 
-            #从result中获取执行结果用于生成测试报告
-            @result.get_testsuite_detail(result, :rerunner)
-
             return result
           end
 
@@ -95,28 +94,6 @@ module Actir
               failure_tests << testcase
             end 
             failure_tests
-            # result_array = test_result[:stdout].split("\n")
-            # failure_tests_hash = {}
-            # testcase = ""
-            # testfile = ""
-            # result_array.each do |result|
-            #   #取出执行失败的用例文件名称和用例名称
-            #   if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg)
-            #     #范例:"testhehe(TestHehe)"
-            #     testcase = $1
-            #   end
-            #   if result =~ failure_tests_file_reg
-            #     #范例:"testcode/test_tt/test_hehe.rb:8:in `xxxx'"
-            #     testfile = $1
-            #   end
-            #   #至于为什么采用testcase => testfile的形式是因为…文件名会重复
-            #   if testcase != "" && testfile != "" 
-            #     failure_tests_hash[testcase] = testfile
-            #     testcase = ""
-            #     testfile = ""
-            #   end
-            # end
-            # failure_tests_hash
           end
 
           #组合出最新的执行结果
