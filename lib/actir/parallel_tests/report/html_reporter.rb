@@ -43,7 +43,7 @@ module Actir
           if(testcase[:success] == true)
             testcase_passed_print(testcase[:testcase_name])
           else
-            testcase_failed_print(testcase[:testcase_name], testcase[:detail])
+            testcase_failed_print(testsuite[:testsuite_name], testcase[:testcase_name], testcase[:detail])
           end
         end
         @formatter.print_testsuite_end
@@ -56,7 +56,7 @@ module Actir
         @formatter.flush
       end
 
-      def testcase_failed_print(testcase_name, details)
+      def testcase_failed_print(testsuit_name, testcase_name, details)
         @testcase_number += 1
         @failure_number += 1
 
@@ -65,7 +65,7 @@ module Actir
           @formatter.make_testsuite_header_red(@testsuite_number)
         end
 
-        @formatter.print_testcase_failed(testcase_name, details, @failure_number)
+        @formatter.print_testcase_failed(testsuit_name, testcase_name, details, @failure_number)
         @formatter.flush
       end
 

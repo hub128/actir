@@ -47,9 +47,9 @@ module Actir
     #若用例执行失败则进行截图，在每个用例的teardown方法中直接调用，传入浏览器对象实例
     def screenshot_if_failed(browser)
       unless self.passed?
-        Dir::mkdir('screenshots') if not File.directory?('screenshots')
-        time = Time.now.strftime('%Y%m%d-%H%M%S')
-        screenshot = "./screenshots/FAILED_#{self.name}_#{time}.png"
+        Dir::mkdir('../screenshots') if not File.directory?('../screenshots')
+        #time = Time.now.strftime('%Y%m%d-%H%M%S')
+        screenshot = "../screenshots/FAILED_#{self.name}.png"
         browser.screenshot.save screenshot
       end
     end
