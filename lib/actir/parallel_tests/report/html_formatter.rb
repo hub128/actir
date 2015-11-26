@@ -32,12 +32,18 @@ module Actir
         @file.puts "    </dd>"
       end
 
-      def print_testcase_failed(testcase_name, backtrace, failure_number)
+      def print_testcase_failed(testsuit_name, testcase_name, backtrace, failure_number)
+        temp = testcase_name.split(":")
+        class_name = testsuit_name.split(":")[1]
+        method_name = temp[1]
+
+        #class_full_name  = temp[0].split("/")
+        #class_name = class_full_name[class_full_name.length - 1].split(".")[0].camelize
         @file.puts "    <dd class=\"testcase failed\">"
         @file.puts "      <span class=\"failed_spec_name\">[Testcase]: #{h(testcase_name)}</span>"
         @file.puts "      <div id=\"testtab_#{failure_number}\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
         @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
-        @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre></div>"
+        @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre> <h6>Failure Screenshots:<h6><img src=\"../screenshots/FAILED_#{method_name}(#{class_name}).png\" hight=\"700\" width=\"800\"></div>"
         @file.puts "      </div>"
         @file.puts "    </dd>"
       end
@@ -163,6 +169,7 @@ function assign_display_style_for_group(classname, display_flag, subgroup_flag) 
 function $G(Read_Id) { return document.getElementById(Read_Id) }
 
 function Effect(ObjectId,parentId){
+  console.log(ObjectId);
 var Obj_Display = $G(ObjectId).style.display;
   if (Obj_Display == 'none'){
   Start(ObjectId,'Opens');
