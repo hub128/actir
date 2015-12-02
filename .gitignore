@@ -13,5 +13,6 @@
 *.a
 *.gem
 .DS_Store
+.idea
 mkmf.log
 /.travis/
