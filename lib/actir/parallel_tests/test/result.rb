@@ -98,12 +98,12 @@ module Actir
               end
 
               # 记录报错用例名称
-              if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg)
-                testcase = $1
+              if (result =~ failure_tests_name_reg) || (result =~ error_tests_name_reg) || (result =~ fail_tests_name_reg_extra)
+                testcase = $1                
               end
 
               # 记录报错用例文件名称
-              if result =~ failure_tests_file_reg
+              if (result =~ failure_tests_file_reg) || (result =~ failure_tests_file_reg_extra)
                 #范例:"testcode/test_tt/test_hehe.rb:8:in `xxxx'"
                 testfile = $1
               end
@@ -143,9 +143,19 @@ module Actir
             /^Failure:\s(test.+)\(.+\)/
           end
 
+          # 获取失败用例名的正则［补充场景］
+          def fail_tests_name_reg_extra
+            /^(test.+)\(.+\)/
+          end
+
           # 获取失败用例文件名的正则
           def failure_tests_file_reg
             /(.+\/test.+rb):\d+:in\s`.+'/
+          end
+
+          # 获取失败用例文件名的正则［补充场景］
+          def failure_tests_file_reg_extra
+            /^(test.+rb):\d+:in\s`.+'/
           end
 
           # 测试套信息开头正则
