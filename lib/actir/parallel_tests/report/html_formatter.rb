@@ -33,6 +33,7 @@ module Actir
       end
 
       def print_testcase_failed(testsuit_name, testcase_name, backtrace, failure_number)
+        #screenshots_path = File.join($project_path, 'screenshots')
         temp = testcase_name.split(":")
         class_name = testsuit_name.split(":")[1]
         method_name = temp[1]
@@ -43,10 +44,27 @@ module Actir
         @file.puts "      <span class=\"failed_spec_name\">[Testcase]: #{h(testcase_name)}</span>"
         @file.puts "      <div id=\"testtab_#{failure_number}\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
         @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
-        @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre> <h6>Failure Screenshots:<h6><img src=\"../screenshots/FAILED_#{method_name}(#{class_name}).png\" hight=\"700\" width=\"800\"></div>"
+        @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre> <h6>Failure Screenshots:<h6><img src=\"../ws/screenshots/FAILED_#{method_name}(#{class_name}).png\" onerror=\"javascript:this.src='../../ws/screenshots/FAILED_#{method_name}(#{class_name}).png'\" hight=\"700\" width=\"800\"></div>"
         @file.puts "      </div>"
         @file.puts "    </dd>"
       end
+
+      # def print_testcase_failed(testsuit_name, testcase_name, backtrace, failure_number)
+      #   screenshots_path = File.join($project_path, 'screenshots')
+      #   temp = testcase_name.split(":")
+      #   class_name = testsuit_name.split(":")[1]
+      #   method_name = temp[1]
+
+      #   #class_full_name  = temp[0].split("/")
+      #   #class_name = class_full_name[class_full_name.length - 1].split(".")[0].camelize
+      #   @file.puts "    <dd class=\"testcase failed\">"
+      #   @file.puts "      <span class=\"failed_spec_name\">[Testcase]: #{h(testcase_name)}</span>"
+      #   @file.puts "      <div id=\"testtab_#{failure_number}\" style=\"float:right\"><a class=\"expand\" href=\"#\" onClick=\"Effect('failure_#{failure_number}',this.parentNode.id);\" >+</a> </div>"
+      #   @file.puts "      <div class=\"failure\" id=\"failure_#{failure_number}\" style=\"display:none;\">"
+      #   @file.puts "        <div class=\"backtrace\"><pre>#{h(backtrace)}</pre> <h6>Failure Screenshots:<h6><img src=\"#{screenshots_path}/FAILED_#{method_name}(#{class_name}).png\" onerror=\"javascript:this.src='#'\" hight=\"700\" width=\"800\"></div>"
+      #   @file.puts "      </div>"
+      #   @file.puts "    </dd>"
+      # end
 
       def print_summary(testcase_count, failure_count)
         totals =  "#{testcase_count} testcase#{'s' unless testcase_count == 1}, "
