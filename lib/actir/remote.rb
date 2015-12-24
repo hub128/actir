@@ -71,8 +71,10 @@ module Actir
     
     # 判断执行环境是否是本地环境(Mac)
     def self.is_local?
-      hostname = `hostname`
-      hostname.include? "local"
+      # hostname = `hostname`
+      # hostname.include? "local"
+      # 暂时先默认都是本地环境
+      return true
     end
 
   end
