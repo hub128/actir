@@ -59,6 +59,11 @@ module Actir
         Actir::Config.set("cookies.baidu." + card + "." + "available", "false")
       end
 
+      # 更新baidu_cookies失败后的清理操作。目前需要手动调用，后续优化
+      def clear_after_failure
+        @browser.close
+      end
+
       private
 
       # 更新配置文件中的baidu_cookies
@@ -90,6 +95,11 @@ module Actir
 
       # 登录百付宝主页
       def login_baifubao(username, password)
+        # 选择账号登陆(默认是短信快捷登录，所以需要点击切换一下)
+        link_baifubao_login_back.wait_until_present
+        link_baifubao_login_back.click
+        # 输入账号密码
+        text_baifubao_username.wait_until_present
         text_baifubao_username.set username
         text_baifubao_password.set password
         button_baifubao_login.click
@@ -131,8 +141,12 @@ module Actir
       end
 
       def button_baifubao_login
-        #@browser.input(:xpath, "//input[@id='TANGRAM__PSP_4__submit']")
         @browser.input(:id => 'TANGRAM__PSP_4__submit')
+      end
+
+      # 返回账号登陆的按钮
+      def link_baifubao_login_back
+        @browser.link(:id => 'TANGRAM__PSP_4__sms_btn_back')
       end
 
     end
