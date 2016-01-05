@@ -64,7 +64,7 @@ module Actir
               Actir::CookiesBaidu.update_all
             rescue Exception => e
               #若更新baidu_cookies失败，则关闭浏览器，打印错误信息，并中断测试执行
-              # Actir::CookiesBaidu.clear_after_failure
+              Actir::CookiesBaidu.clear_after_failure
               puts "Exception: #{e.message} in"
               puts e.backtrace
               abort "update baidu cookies failed!!!"
