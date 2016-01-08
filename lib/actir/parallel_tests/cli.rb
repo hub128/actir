@@ -260,7 +260,13 @@ module Actir
       def get_project_path(argv)
         testcode_path = ""
         (argv || []).map do |file_or_folder|
-          test_path = File.join(Dir.pwd , file_or_folder)
+          # 如果传入的路径是绝对路径，那么直接将传入的路径作为test_path
+          if file_or_folder =~ /^\//
+            test_path = file_or_folder
+          # 如果传入的路径是相对路径，那么将当前路径与传入的相对路径做拼接生成test_path
+          else
+            test_path = File.join(Dir.pwd , file_or_folder)
+          end
           #获取testcode文件夹的path
           if test_path =~ /(\/.*\/testcode)/
             testcode_path = $1

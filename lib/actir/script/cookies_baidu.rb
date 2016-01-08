@@ -61,7 +61,9 @@ module Actir
 
       # 更新baidu_cookies失败后的清理操作。目前需要手动调用，后续优化
       def clear_after_failure
-        @browser.close
+        if @browser != nil
+          @browser.close
+        end
       end
 
       private
