@@ -317,10 +317,9 @@ module Actir
       end
 
       def final_fail_message
-        fail_message = "#{@runner.name}s Failed\n"
+        fail_message = "#{@runner.name}s Failed\n\n"
         fail_message = "\e[31m#{fail_message}\e[0m" if use_colors?
-
-        division_str + pre_str + fail_message + division_str
+        "\n" + pre_str + fail_message + failed_testcase_str + "\n"
       end
 
       def use_colors?
@@ -346,6 +345,16 @@ module Actir
         file_path = File.join(@report_path, "index.html")
         file = File.new(file_path,"w")
         report = HtmlReport.new(file)
+      end
+
+      def failed_testcase_str
+        failed_case_array = Actir::ParallelTests::Test::Result.get_failed_testcase
+        failed_case_str = " Failed testcase:\n"
+        failed_case_array.each_with_index do |failed_case, index|
+          index_num = (index + 1).to_s
+          failed_case_str += " " + index_num + " : " + failed_case + "\n" 
+        end
+        failed_case_str
       end
 
     end

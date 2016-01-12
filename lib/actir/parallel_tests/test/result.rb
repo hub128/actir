@@ -23,6 +23,22 @@ module Actir
             end
           end
 
+          #
+          # 获取执行失败的用例
+          #
+          def get_failed_testcase
+            failed_case = []
+            $testsuites.each do |testsuite|
+              testcases = testsuite[:testcases] 
+              testcases.each do |testcase|
+                if testcase[:success] == false
+                  failed_case << testcase[:testcase_name]
+                end
+              end
+            end
+            failed_case
+          end
+
           def record_detail(test_result)
             failure_detail_hash = get_testfailed_info(test_result)
               $testsuites.each do |testsuite|
