@@ -59,7 +59,8 @@ module Actir
           end
 
           #更新百度支付-百付宝的cookies
-          if options[:update]
+          #-u为强制更新，若没有加强制更新命令，则每天自动更新一次
+          if options[:update] || !(Actir::Config.is_same_day?("cookies"))
             begin
               Actir::CookiesBaidu.update_all
             rescue Exception => e
