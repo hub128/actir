@@ -75,6 +75,7 @@ class Browser
       if hasLoaded == 1
         break
       end
+      sleep(0.05)
     end
   end
 

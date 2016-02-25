@@ -14,7 +14,7 @@ module Actir
     
     class << self
 
-      attr_accessor :config_dir
+      attr_accessor :default_config_dir
       
       #
       # 从yaml文件中读取youzan的cookies
@@ -23,10 +23,10 @@ module Actir
       #
       # @return [Hash] youzan的cookies的hash
       #
-      def youzan_cookies(youzan_user)
-        cfg_str = "cookies." + youzan_user
-        get(cfg_str)
-      end
+      # def youzan_cookies(youzan_user)
+      #   cfg_str = "cookies." + youzan_user
+      #   get(cfg_str)
+      # end
       
       #
       # 从yaml文件中读取出所有内容
@@ -53,7 +53,7 @@ module Actir
       #
       # @return [Hash] 对应配置项的hash
       #
-      def get(key)
+      def get(key, config_path = nil)
         #按照点分割字符串
         key_array = key.split(".")  
         #先取出数组中的第一个元素当做配置文件名称，并从数组中移除此元素
@@ -62,8 +62,8 @@ module Actir
         cfg_name = key_array.shift 
         hash = {}
         #加载yaml配置文件，加锁
-        lock(file_name) do 
-          hash = cfg_name ? load_file(file(file_name))[cfg_name] : load_file(file(file_name))
+        lock(file_name, config_path) do
+          hash = cfg_name ? load_file(file(file_name, config_path))[cfg_name] : load_file(file(file_name, config_path))
         end
         #遍历key数组
         until key_array.empty? do
@@ -84,16 +84,16 @@ module Actir
       #              
       #        value : [String] 要修改的值的字符串     
       #
-      def set(key, value)
+      def set(key, value, config_path = nil)
         #按照点分割字符串
         key_array = key.split(".")  
         #先取出数组中的第一个元素当做配置文件名称，并从数组中移除此元素
         file_name = key_array.shift
         cfg_str = key_array.shift
         old_value = ""
-        lock(file_name) do 
+        lock(file_name, config_path) do
           #先读出所有的内容
-          str_array = IO.readlines(file(file_name))
+          str_array = IO.readlines(file(file_name, config_path))
           str_array.each_with_index do |line, index|
             if ( cfg_str != "" && line =~ /(\s*#{cfg_str}\:\s*)(.*)/ )
               cfg_key = $1
@@ -109,7 +109,7 @@ module Actir
               end
             end
           end
-          config_file = File.open(file(file_name), "w")
+          config_file = File.open(file(file_name, config_path), "w")
           str_array.each do |line|
             config_file.puts line
           end
@@ -129,16 +129,16 @@ module Actir
       #
       #                     不同则返回false
       #
-      def is_same_day?(file_name)
+      def is_same_day?(file_name, config_path = nil)
         now_date = Time.new.strftime("%m-%d")
-        modify_date = get_modify_time(file_name)
+        modify_date = get_modify_time(file_name, config_path)
         now_date == modify_date
       end
 
       #获取配置文件的修改时间(只精确到日期，不考虑具体时间)
       #返回String,格式为：04-27... 12-29
-      def get_modify_time(file_name)
-        sh_str = "ls -l " + file(file_name) + " | awk '{print $6 \"-\" $7}'"
+      def get_modify_time(file_name, config_path = nil)
+        sh_str = "ls -l " + file(file_name, config_path) + " | awk '{print $6 \"-\" $7}'"
         stat_str = `#{sh_str}`  
         #从中取出月份和日期
         stat_str =~ /(\d+).*\-(\d+)/
@@ -155,8 +155,8 @@ module Actir
       end
       
       # 多进程操作文件时加锁
-      def lock(file_name)
-        File.open(file(file_name), 'r') do |f|
+      def lock(file_name, config_path = nil)
+        File.open(file(file_name, config_path), 'r') do |f|
           begin
             f.flock File::LOCK_EX
             yield
@@ -167,13 +167,14 @@ module Actir
       end
 
       #配置文件路径
-      def file(file_name)
+      def file(file_name, config_path = nil)
+        config_dir = (config_path == nil) ? default_config_dir : config_path
         File.expand_path(File.join(config_dir, "/#{file_name}.yaml"), __FILE__)
       end
       
       #默认配置文件夹路径
-      def config_dir
-        @config_dir ||= File.join($project_path, "config")
+      def default_config_dir
+        @default_config_dir ||= File.join($project_path, "config")
       end
       
       private

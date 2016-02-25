@@ -7,7 +7,17 @@ module Actir
 
       # 更新百度账号所有的配置文件
       def update_all(address = [])
-        baidu_card = Actir::Config.get("cookies.baidu")
+        baidu_card = Actir::Config.get(baifubao_key)
+        # 确认目前可用的卡的数目和cookies文件上的是否匹配
+        # TODO 先不实现,cookies文件上的cards数量过多目前看不影响
+        # baidu_card_cookies = Actir::Config.get("cookies", cookies_path)
+        # if baidu_card_cookies != nill && baidu_card != nil
+        #   if baidu_card_cookies.size > baidu_card.size
+        #
+        #   end
+        # else
+        #   raise "no baifubao cards"
+        # end
         baidu_card.each do |card, value|
           update_cookies(card, address)
         end
@@ -16,16 +26,16 @@ module Actir
       #将所有百度支付卡的available状态恢复为true
       def re_available
         #每次登陆都判断一下cookies文件的上一次修改时间和当前时间
-        #如果日期不同，则刷新所有的cookies文件中baidu-card的状态
-        unless Actir::Config.is_same_day?("cookies")
-          Actir::Config.lock("cookies") do
-            str_array = IO.readlines(cookies_file)
+        #如果日期不同，则刷新所有的pay文件中baidu-card的状态
+        unless Actir::Config.is_same_day?("cookies", cookies_path)
+          Actir::Config.lock("pay") do
+            str_array = IO.readlines(baifubao_account_file)
             str_array.each_with_index do |line, index|
               if line =~ /available\:\s*false/  
                 str_array[index] = line.gsub(/false/, 'true')
               end
             end
-            cookiesfile = File.open(cookies_file, 'w')
+            cookiesfile = File.open(baifubao_account_file, 'w')
             str_array.each do |line|
               cookiesfile.puts line
             end
@@ -40,10 +50,14 @@ module Actir
         # old_config = Actir::Config.config_dir
         # Actir::Config.config_dir = script_config_path
         #通过配置文件判断取出可用的卡的参数
-        baidu_card = Actir::Config.get("cookies.baidu")
+        baidu_card = Actir::Config.get(baifubao_key)
         card = {}
         baidu_card.each do |key, value|
           if value["available"] == true
+            # 顺便取一下cookies
+            baidu_card_cookies = Actir::Config.get("cookies." + key, cookies_path)
+            value["BAIDUID"] = baidu_card_cookies["BAIDUID"]
+            value["BDUSS"] = baidu_card_cookies["BDUSS"]
             #有可用的卡，取出cookies等参数
             card.store(key, value)
             break
@@ -56,7 +70,7 @@ module Actir
       # 设置不可用的卡
       # 入参传入卡的key
       def set_useless_card(card)
-        Actir::Config.set("cookies.baidu." + card + "." + "available", "false")
+        Actir::Config.set(baifubao_key + "." + card + "." + "available", "false")
       end
 
       # 更新baidu_cookies失败后的清理操作。目前需要手动调用，后续优化
@@ -66,14 +80,12 @@ module Actir
         end
       end
 
-      private
-
       # 更新配置文件中的baidu_cookies
       def update_cookies(card, address = [])
         #打开百付宝
         open_baifubao(address)
         #获取对应卡的账号密码
-        args = Actir::Config.get("cookies.baidu." + card)
+        args = Actir::Config.get(baifubao_key + "." + card)
         #登录百付宝
         login_baifubao(args["username"], args["password"])
         #获取cookies
@@ -109,7 +121,7 @@ module Actir
 
       # 获取cookies
       def get_baifubao_cookies
-        sleep 5
+        sleep 3
         id =  @browser.cookies[:BAIDUID][:value]
         ss =  @browser.cookies[:BDUSS][:value]
         @browser.close
@@ -120,19 +132,30 @@ module Actir
 
       def modify_cookies(card, cookies)
         cookies.each do |key, value|
-          Actir::Config.set("cookies.baidu."+card+"."+key.to_s , "\""+value.to_s+"\"")
+          Actir::Config.set("cookies" + "." + card + "." + key.to_s , "\"" + value.to_s + "\"", cookies_path)
         end
       end
 
-      # 配置文件所在文件夹的路径
-      def script_config_path
-        File.join(File.dirname(__FILE__), "config")
+      # 配置文件的上一级路径
+      def cookies_path
+        File.join(File.dirname(__FILE__), "cookies")
       end
 
       # 配置文件相对路径
       def cookies_file
-        File.join(Actir::Config.config_dir, "/cookies.yaml")
+        File.join(File.dirname(__FILE__), "cookies", "/cookies.yaml")
       end
+
+      # 百度账号配置文件
+      def baifubao_account_file
+        File.join(Actir::Config.default_config_dir, "/pay.yaml")
+      end
+
+      def baifubao_key
+        "pay.baifubao"
+      end
+
+      private
 
       def text_baifubao_username
         @browser.text_field(:id => 'TANGRAM__PSP_4__userName')
@@ -155,6 +178,4 @@ module Actir
   end
 
 end
-
-#Actir::CookiesBaidu.re_available
 
