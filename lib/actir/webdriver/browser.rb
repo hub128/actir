@@ -82,7 +82,7 @@ class Browser
   # 初始化入参
   def init_args(args = {})
     config_exist = File.exist?(config_file)
-    unless args.has_key?(:mode)
+    unless args.has_key?(:mode) && args[:mode] != nil
       #若通过actir执行测试用例，则会配置ENV的模式
       if ENV["mode"]
         args[:mode] = ENV["mode"].to_sym
@@ -96,7 +96,7 @@ class Browser
         end
       end
     end
-    unless args.has_key?(:browser)
+    unless args.has_key?(:browser) && args[:browser] != nil
       if config_exist 
         browser_type = $config["config"]["test_mode"]["browser"]
         args[:browser] = (browser_type == nil) ? :chrome : browser_type
@@ -104,7 +104,7 @@ class Browser
         args[:browser] = :chrome
       end
     end
-    unless args.has_key?(:window_size)
+    unless args.has_key?(:window_size) && args[:window_size] != nil
       if config_exist
         window_size = $config["config"]["window_size"]
         if window_size != nil
@@ -116,8 +116,8 @@ class Browser
         args[:window_size] = nil
       end
     end
-    args[:agent] = :iphone  unless args.has_key?(:agent)
-    args[:url] = $address  unless args.has_key?(:url)
+    args[:agent] = :iphone  unless args.has_key?(:agent) && args[:agent] != nil
+    args[:url] = $address  unless args.has_key?(:url) && args[:url] != nil
     args
   end
 
