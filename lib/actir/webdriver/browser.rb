@@ -81,7 +81,8 @@ class Browser
 
   # 初始化入参
   def init_args(args = {})
-    config_exist = File.exist?(config_file)
+    # config_exist = File.exist?(config_file)
+    config_exist = ($config != nil)
     unless args.has_key?(:mode) && args[:mode] != nil
       #若通过actir执行测试用例，则会配置ENV的模式
       if ENV["mode"]
