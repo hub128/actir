@@ -35,16 +35,16 @@ module Actir
         test_results = nil
         
         #修改全局变量$env至对应的预发布环境的名字
-        if options[:pre_name] 
-          # 不等于当前的预发环境
-          if options[:pre_name] != $env
-            $env = options[:pre_name]
-          end
-        else
-          if options[:pre_name] != $env
-            $env = "online"
-          end
-        end
+        # if options[:pre_name]
+        #   # 不等于当前的预发环境
+        #   if options[:pre_name] != $env
+        #     $env = options[:pre_name]
+        #   end
+        # else
+        #   if options[:pre_name] != $env
+        #     $env = "online"
+        #   end
+        # end
 
         report_time_taken do
           groups = @runner.tests_in_groups(options[:files], num_processes, options)
@@ -180,65 +180,65 @@ module Actir
         OptionParser.new do |opts|
           opts.banner = <<-BANNER.gsub(/^          /, '')
             Run all tests in parallel
-            Usage: ruby [switches] [--] [files & folders]
+            Usage: actir [switches] [--] [files & folders] [-] [testcase_name]
             Options are:
           BANNER
-          # opts.on("-n [PROCESSES]", Integer, "How many processes to use, default: 1") { |n| options[:count] = n }
           opts.on("-n [TESTCASE]", String, "Run this testcase") { |casename| options[:testcase] = casename }
-          opts.on("--group-by [TYPE]", <<-TEXT.gsub(/^          /, '')
-          group tests by:
-                      found - order of finding files
-                      filesize - by size of the file
-                      default - filesize
-            TEXT
-            ) { |type| options[:group_by] = type.to_sym }
+          opts.on("-p [PROCESSES]", Integer, "How many processes to use, default: 1") { |p| options[:count] = p }
+          # opts.on("--group-by [TYPE]", <<-TEXT.gsub(/^          /, '')
+          # group tests by:
+          #             found - order of finding files
+          #             filesize - by size of the file
+          #             default - filesize
+          #   TEXT
+          #   ) { |type| options[:group_by] = type.to_sym }
           opts.on("-r [TIMES]", "--rerun [TIMES]", Integer, "rerun times for failure&error testcase, default: 0") { |n| options[:rerun] = n }
           #opts.on("-m [FLOAT]", "--multiply-processes [FLOAT]", Float, "use given number as a multiplier of processes to run") { |multiply| options[:multiply] = multiply }
-          opts.on("-i", "--isolate",
-            "Do not run any other tests in the group used by --single(-s)") do |pattern|
-            options[:isolate] = true
-          end
+          # opts.on("-i", "--isolate",
+          #   "Do not run any other tests in the group used by --single(-s)") do |pattern|
+          #   options[:isolate] = true
+          # end
           opts.on("-e", "--exec [COMMAND]", "execute this code parallel") { |path| options[:execute] = path }
-          opts.on("--serialize-stdout", "Serialize stdout output, nothing will be written until everything is done") { options[:serialize_stdout] = true }
-          opts.on("--combine-stderr", "Combine stderr into stdout, useful in conjunction with --serialize-stdout") { options[:combine_stderr] = true }
-          opts.on("--non-parallel", "execute same commands but do not in parallel, needs --exec") { options[:non_parallel] = true }
-          opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
+          # opts.on("--serialize-stdout", "Serialize stdout output, nothing will be written until everything is done") { options[:serialize_stdout] = true }
+          # opts.on("--combine-stderr", "Combine stderr into stdout, useful in conjunction with --serialize-stdout") { options[:combine_stderr] = true }
+          # opts.on("--non-parallel", "execute same commands but do not in parallel, needs --exec") { options[:non_parallel] = true }
+          # opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
           opts.on("--verbose", "Print more output") { options[:verbose] = true }
           opts.on("--log", "record exec result to logfile") { options[:log] = true}
           opts.on("--report", "make a report to show the test result") { options[:report] = true}
-          opts.on("--remote", "run testcase in remote environment") { options[:mode] = :remote }
-          opts.on("--local", "run testcase in local environment") { options[:mode] = :local }
-          # 填写预发环境，目前只支持bjpre2-4，别的后续再添加
-          opts.on("-p", "--pre [PRE]", <<-TEXT.gsub(/^          /, '')
-          set pre environment to run testcase:
-                      bjpre2
-                      bjpre3
-                      bjpre4
-            TEXT
-            ) { |pre| pre = "online" if ( pre != "bjpre2" && pre != "bjpre3" && pre != "bjpre4"); options[:pre_name] = pre }
+          # opts.on("--remote", "run testcase in remote environment") { options[:mode] = :remote }
+          # opts.on("--local", "run testcase in local environment") { options[:mode] = :local }
+          # # 填写预发环境，目前只支持bjpre2-4，别的后续再添加
+          # opts.on("-p", "--pre [PRE]", <<-TEXT.gsub(/^          /, '')
+          # set pre environment to run testcase:
+          #             bjpre2
+          #             bjpre3
+          #             bjpre4
+          #   TEXT
+          #   ) { |pre| pre = "online" if ( pre != "bjpre2" && pre != "bjpre3" && pre != "bjpre4"); options[:pre_name] = pre }
           #add by Hub
           #-u commnd, update baifubao's cookies
           opts.on("-u", "--update", "Update Baifubao's cookies") { options[:update] = true }
           #add by Hub 
           #-s commnd, show test mode,and remote env ipaddress
-          opts.on("-s", "--show [PATH]", "Show Test Mode") do |path|
-            abort "Please input project directory path!" if path == nil
-            $project_path = File.join(Dir.pwd, path)
-            puts division_str
-            if Actir::Config.get("config.test_mode.env") == :local
-              puts "mode : Local"
-            else
-              puts "mode : Remote"
-              node_name = Actir::Config.get("config.test_mode.docker.name")
-              address = Actir::Remote.get_remote_address
-              puts "node_num : " + address.size.to_s
-              address.each_with_index do |address, i|
-                puts $env + node_name + (i+1).to_s + " : " + address
-              end
-            end
-            puts division_str
-            exit
-          end
+          # opts.on("-s", "--show [PATH]", "Show Test Mode") do |path|
+          #   abort "Please input project directory path!" if path == nil
+          #   $project_path = File.join(Dir.pwd, path)
+          #   puts division_str
+          #   if Actir::Config.get("config.test_mode.env") == :local
+          #     puts "mode : Local"
+          #   else
+          #     puts "mode : Remote"
+          #     node_name = Actir::Config.get("config.test_mode.docker.name")
+          #     address = Actir::Remote.get_remote_address
+          #     puts "node_num : " + address.size.to_s
+          #     address.each_with_index do |address, i|
+          #       puts $env + node_name + (i+1).to_s + " : " + address
+          #     end
+          #   end
+          #   puts division_str
+          #   exit
+          # end
           opts.on("-h", "--help", "Show this.") { puts opts; exit }
         end.parse!(argv)
 
