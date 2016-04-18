@@ -39,7 +39,7 @@ module Actir
       Dir.glob(File.join @item_path, '**', '*.rb').select {|p| p =~ /\.rb$/}.each do |i|
         puts i if $debug
         require "#{i}" 
-      end
+      end #each
     end
 
     def load_user

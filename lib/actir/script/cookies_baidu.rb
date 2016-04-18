@@ -56,8 +56,9 @@ module Actir
           if value["available"] == true
             # 顺便取一下cookies
             baidu_card_cookies = Actir::Config.get("cookies." + key, cookies_path)
-            value["BAIDUID"] = baidu_card_cookies["BAIDUID"]
+            # value["BAIDUID"] = baidu_card_cookies["BAIDUID"]
             value["BDUSS"] = baidu_card_cookies["BDUSS"]
+            value["STOKEN"] = baidu_card_cookies["STOKEN"]
             #有可用的卡，取出cookies等参数
             card.store(key, value)
             break
@@ -122,12 +123,14 @@ module Actir
       # 获取cookies
       def get_baifubao_cookies
         sleep 3
-        id =  @browser.cookies[:BAIDUID][:value]
+        # id =  @browser.cookies[:BAIDUID][:value]
         ss =  @browser.cookies[:BDUSS][:value]
+        stoken =  @browser.cookies[:STOKEN][:value]
         @browser.close
         #cookies = "  BAIDUID:\s\s\s\s\s\s\"" + id + "\"\n  BDUSS:\s\s\s\s\s\s\s\s\"" + ss + "\"\n"
         #以hash形式返回
-        {:BAIDUID => id, :BDUSS => ss } 
+        # {:BAIDUID => id, :BDUSS => ss } 
+        {:BDUSS => ss, :STOKEN => stoken}
       end
 
       def modify_cookies(card, cookies)
