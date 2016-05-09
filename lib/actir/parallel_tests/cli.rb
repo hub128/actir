@@ -34,18 +34,6 @@ module Actir
       def run_tests_in_parallel(num_processes, options)
         test_results = nil
         
-        #修改全局变量$env至对应的预发布环境的名字
-        # if options[:pre_name]
-        #   # 不等于当前的预发环境
-        #   if options[:pre_name] != $env
-        #     $env = options[:pre_name]
-        #   end
-        # else
-        #   if options[:pre_name] != $env
-        #     $env = "online"
-        #   end
-        # end
-
         report_time_taken do
           groups = @runner.tests_in_groups(options[:files], num_processes, options)
 
@@ -53,22 +41,26 @@ module Actir
           # @Date : 2015.3.9
           # 远程执行模式下获取服务器IP和端口号
           address = []
-          if $mode == :remote
-            address = Actir::Remote.get_remote_address(num_processes)
-            num_processes = address.size
-          end
+          # if $mode == :remote
+          #   address = Actir::Remote.get_remote_address(num_processes)
+          #   num_processes = address.size
+          # end
 
           #更新百度支付-百付宝的cookies
           #-u为强制更新，若没有加强制更新命令，则每天自动更新一次
-          if options[:update] || !(Actir::Config.is_same_day?("cookies", Actir::CookiesBaidu.cookies_path))
-            begin
-              Actir::CookiesBaidu.update_all
-            rescue Exception => e
-              #若更新baidu_cookies失败，则关闭浏览器，打印错误信息，并中断测试执行
-              Actir::CookiesBaidu.clear_after_failure
-              puts "Exception: #{e.message} in"
-              puts e.backtrace
-              abort "update baidu cookies failed!!!"
+          #qatest模式则不需要更新baiducookies，qatest环境的百度支付已mock
+          if $env == "online"
+            Actir::CookiesBaidu.init
+            if options[:update] || !(Actir::Config.is_same_day?("cookies", Actir::CookiesBaidu.directory))
+              begin
+                Actir::CookiesBaidu.update_cookies("card1")
+              rescue Exception => e
+                #若更新baidu_cookies失败，则关闭浏览器，打印错误信息，并中断测试执行
+                Actir::CookiesBaidu.clear_after_failure
+                puts "Exception: #{e.message} in"
+                puts e.backtrace
+                abort "update baidu cookies failed!!!"
+              end
             end
           end
 
@@ -77,7 +69,7 @@ module Actir
           #报用例数
           report_number_of_tests(groups)
           #报执行环境
-          report_address_of_env(address)
+          # report_address_of_env(address)
           #并发执行不同group中的测试用例
           test_results = execute_in_parallel(groups, groups.size, options) do |group|
             p_num = groups.index(group)
@@ -179,7 +171,7 @@ module Actir
         @runner = load_runner("test")
         OptionParser.new do |opts|
           opts.banner = <<-BANNER.gsub(/^          /, '')
-            Run all tests in parallel
+            Run all testcase in parallel
             Usage: actir [switches] [--] [files & folders] [-] [testcase_name]
             Options are:
           BANNER
@@ -192,53 +184,19 @@ module Actir
           #             default - filesize
           #   TEXT
           #   ) { |type| options[:group_by] = type.to_sym }
+          opts.on("-e [online][qatest]", String, "set environment to run testcase, default: online") { |env| env = "online" if ((env != "qatest" && env != "online")|| (env == nil)); $env = env;}
           opts.on("-r [TIMES]", "--rerun [TIMES]", Integer, "rerun times for failure&error testcase, default: 0") { |n| options[:rerun] = n }
-          #opts.on("-m [FLOAT]", "--multiply-processes [FLOAT]", Float, "use given number as a multiplier of processes to run") { |multiply| options[:multiply] = multiply }
-          # opts.on("-i", "--isolate",
-          #   "Do not run any other tests in the group used by --single(-s)") do |pattern|
-          #   options[:isolate] = true
-          # end
-          opts.on("-e", "--exec [COMMAND]", "execute this code parallel") { |path| options[:execute] = path }
-          # opts.on("--serialize-stdout", "Serialize stdout output, nothing will be written until everything is done") { options[:serialize_stdout] = true }
-          # opts.on("--combine-stderr", "Combine stderr into stdout, useful in conjunction with --serialize-stdout") { options[:combine_stderr] = true }
-          # opts.on("--non-parallel", "execute same commands but do not in parallel, needs --exec") { options[:non_parallel] = true }
-          # opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
+          opts.on("-u", "--update", "Update Baifubao's cookies") { options[:update] = true }
           opts.on("--verbose", "Print more output") { options[:verbose] = true }
           opts.on("--log", "record exec result to logfile") { options[:log] = true}
           opts.on("--report", "make a report to show the test result") { options[:report] = true}
           # opts.on("--remote", "run testcase in remote environment") { options[:mode] = :remote }
           # opts.on("--local", "run testcase in local environment") { options[:mode] = :local }
-          # # 填写预发环境，目前只支持bjpre2-4，别的后续再添加
-          # opts.on("-p", "--pre [PRE]", <<-TEXT.gsub(/^          /, '')
-          # set pre environment to run testcase:
-          #             bjpre2
-          #             bjpre3
-          #             bjpre4
-          #   TEXT
-          #   ) { |pre| pre = "online" if ( pre != "bjpre2" && pre != "bjpre3" && pre != "bjpre4"); options[:pre_name] = pre }
-          #add by Hub
-          #-u commnd, update baifubao's cookies
-          opts.on("-u", "--update", "Update Baifubao's cookies") { options[:update] = true }
-          #add by Hub 
-          #-s commnd, show test mode,and remote env ipaddress
-          # opts.on("-s", "--show [PATH]", "Show Test Mode") do |path|
-          #   abort "Please input project directory path!" if path == nil
-          #   $project_path = File.join(Dir.pwd, path)
-          #   puts division_str
-          #   if Actir::Config.get("config.test_mode.env") == :local
-          #     puts "mode : Local"
-          #   else
-          #     puts "mode : Remote"
-          #     node_name = Actir::Config.get("config.test_mode.docker.name")
-          #     address = Actir::Remote.get_remote_address
-          #     puts "node_num : " + address.size.to_s
-          #     address.each_with_index do |address, i|
-          #       puts $env + node_name + (i+1).to_s + " : " + address
-          #     end
-          #   end
-          #   puts division_str
-          #   exit
-          # end
+                    # opts.on("-e", "--exec [COMMAND]", "execute this code parallel") { |path| options[:execute] = path }
+          # opts.on("--serialize-stdout", "Serialize stdout output, nothing will be written until everything is done") { options[:serialize_stdout] = true }
+          # opts.on("--combine-stderr", "Combine stderr into stdout, useful in conjunction with --serialize-stdout") { options[:combine_stderr] = true }
+          # opts.on("--non-parallel", "execute same commands but do not in parallel, needs --exec") { options[:non_parallel] = true }
+          # opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
           opts.on("-h", "--help", "Show this.") { puts opts; exit }
         end.parse!(argv)
 
