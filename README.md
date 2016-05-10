@@ -21,14 +21,13 @@ Application Concurrence Test in Ruby.
 
 ###测试工程结构
   - **config**：配置文件  
-  &emsp;&emsp;|--- config.yaml：总体配置文件,test_mode相关的配置项必须要填  
+  &emsp;&emsp;|--- config.yaml：总体配置文件,test_mode相关的配置项必须要填;  
   - **elements**：页面元素  
-  &emsp;&emsp;|--- components：公用页面元素方法, 包装成`Module`  
-  &emsp;&emsp;|--- pages：页面元素封装的方法,可以继承自`Actir::BasicPage`,已经封装了部分公用方法  
-  &emsp;&emsp;|--- items：根据业务抽象出的类
-  
-  &emsp;&emsp;|--- user：根据系统业务抽象出的角色及其Action  
-  - **testcode**： 测试用例, 文件和用例方法都要以`test`开头, 执行之前需要初始化 Actir::Initializer.new(project_path)，`project_path`为测试工程根目录
+  &emsp;&emsp;|--- components：公用页面元素方法, 包装成`Module`;  
+  &emsp;&emsp;|--- pages：页面元素封装的方法,可以继承自`Actir::BasicPage`,已经封装了部分公用方法;  
+  &emsp;&emsp;|--- items：根据业务抽象出的类;
+  &emsp;&emsp;|--- user：根据系统业务抽象出的角色及其Action;  
+  - **testcode**： 测试用例, 文件和用例方法都要以`test`开头, 执行之前需要初始化`Actir::Initializer.new(project_path)`，`project_path`为测试工程根目录;
 
 ###浏览器对象
 ``` ruby
@@ -38,9 +37,9 @@ Browser重新封装了Watir以及Selenium的初始化浏览器的方法
 - **type**：指定初始化浏览器的类型,可以指定www/wap两类  
 - **args**：
   - `:browser`：浏览器类型,可以支持 :chrome/:phantomjs/:firefox, 默认为chrome  
-    - `:agent`：user agent类型,可以支持 :iphone/:andriod_phone, 默认为iphone  
-    - `:mode`：启动模式,支持 :local/:remote, 默认为local  
-    - `:url`： 配合mode为remote的模式,指定远程机器的url,需要 IP+端口号  
+  - `:agent`：user agent类型,可以支持 :iphone/:andriod_phone, 默认为iphone  
+  - `:mode`：启动模式,支持 :local/:remote, 默认为local  
+  - `:url`： 配合mode为remote的模式,指定远程机器的url,需要 IP+端口号  
 
 ###Initializer自动加载工程文件
 ``` ruby
