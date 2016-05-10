@@ -41,26 +41,39 @@ module Actir
 
           def record_detail(test_result)
             failure_detail_hash = get_testfailed_info(test_result)
-              $testsuites.each do |testsuite|
-                testcases = testsuite[:testcases] 
-                testcases.each do |testcase|
-                  #标识用例是否执行失败
-                  fail_flag = 0
-                  failure_detail_hash.each do |testcase_failure, detail|
-                    if testcase_failure == testcase[:testcase_name]
-                      testcase[:success] = false
-                      testcase[:detail] = detail 
-                      fail_flag = 1
-                      #从hash表中移除 
-                      failure_detail_hash.delete(testcase_failure)
-                    end
-                  end
-                  if fail_flag == 0
-                    testcase[:success] = true
-                    testcase[:detail] = nil
+            
+            $testsuites.each do |testsuite|
+              testcases = testsuite[:testcases] 
+              testcases.each do |testcase|
+                #标识用例是否执行失败
+                fail_flag = 0
+                failure_detail_hash.each do |testcase_failure, detail|
+                  if testcase_failure == testcase[:testcase_name]
+                    testcase[:success] = false
+                    testcase[:detail] = detail 
+                    fail_flag = 1
+                    #从hash表中移除 
+                    failure_detail_hash.delete(testcase_failure)
                   end
                 end
+                if fail_flag == 0
+                  testcase[:success] = true
+                  testcase[:detail] = nil
+                end
               end
+            end
+            # 反向再检查一遍是否有$testsuites种未记录的失败用例
+            miss_failed_case = []
+            if failure_detail_hash.size > 0
+              failure_detail_hash.each do |testcase_failure, detail|
+                testcase = {:testcase_name => testcase_failure, :success => false, :detail => detail}
+                #从hash表中移除 
+                failure_detail_hash.delete(testcase_failure)
+                miss_failed_case << testcase
+              end
+              testsuite = {:testsuite_name => "miss_failed_case", :testcases => miss_failed_case}
+              $testsuites << testsuite
+            end
           end
 
           def get_run_test_info(test_result)

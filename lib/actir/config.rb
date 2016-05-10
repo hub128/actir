@@ -59,11 +59,17 @@ module Actir
         #先取出数组中的第一个元素当做配置文件名称，并从数组中移除此元素
         file_name = key_array.shift
         #再取出第二个元素，指定配置项,并移除
-        cfg_name = key_array.shift 
+        # cfg_name = key_array.shift 
         hash = {}
         #加载yaml配置文件，加锁
         lock(file_name, config_path) do
-          hash = cfg_name ? load_file(file(file_name, config_path))[cfg_name] : load_file(file(file_name, config_path))
+          # hash = cfg_name ? load_file(file(file_name, config_path))[cfg_name] : load_file(file(file_name, config_path))
+          hash = load_file(file(file_name, config_path))
+        end
+        #判断是否存在 online 和 qatest 关键词，存在的话就读取当前env配置
+        if (hash.has_key?("online") || hash.has_key?("qatest"))
+          #在key_array头上加入env配置
+          key_array.unshift(determine_env)
         end
         #遍历key数组
         until key_array.empty? do
@@ -78,9 +84,9 @@ module Actir
       #
       # 改文件加锁，解决多进程同时写文件的问题
       #
-      # @example : set("config.test_mode.env", ":remote")
+      # @example : set("config.test_mode.mode", ":remote")
       #
-      # @param key   : [String] 指定配置项的字符串,形如config.test_mode.env，以点衔接
+      # @param key   : [String] 指定配置项的字符串,形如config.test_mode.mode，以点衔接
       #              
       #        value : [String] 要修改的值的字符串     
       #
@@ -89,6 +95,19 @@ module Actir
         key_array = key.split(".")  
         #先取出数组中的第一个元素当做配置文件名称，并从数组中移除此元素
         file_name = key_array.shift
+
+        hash = {}
+        #加载yaml配置文件，加锁
+        lock(file_name, config_path) do
+          # hash = cfg_name ? load_file(file(file_name, config_path))[cfg_name] : load_file(file(file_name, config_path))
+          hash = load_file(file(file_name, config_path))
+        end
+        #判断是否存在 online 和 qatest 关键词，存在的话就读取当前env配置
+        if (hash.has_key?("online") || hash.has_key?("qatest"))
+          #在key_array头上加入env配置
+          key_array.unshift(determine_env)
+        end
+
         cfg_str = key_array.shift
         old_value = ""
         lock(file_name, config_path) do
@@ -115,8 +134,9 @@ module Actir
           end
           config_file.close
         end
-        puts "Already set [" + key + "]'s value form " + old_value + " into " + value
+        puts "set [" + key + "]'s value form " + old_value + " into " + value
       end
+
 
       #
       # 判断配置文件的上一次修改时间和当前时间是否一样
@@ -187,6 +207,15 @@ module Actir
       def valid?(filepath)
         raise "file didn't exist!" unless File.exists?(filepath)
         true
+      end
+
+      # 判断执行环境，如果$env为nil则从环境变量里面读取
+      def determine_env
+        if $env
+          $env
+        else
+          ENV["env"]
+        end
       end
 
     end

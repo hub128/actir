@@ -11,7 +11,7 @@ module Actir
         $env = "online"
         options = parse_options!(argv)
         num_processes = Actir::ParallelTests.determine_number_of_processes(options[:count])
-        $mode = Actir::ParallelTests.determine_run_env(options[:mode])
+        $mode = Actir::ParallelTests.determine_run_mode(options[:mode])
         if options[:execute]
           execute_shell_command_in_parallel(options[:execute], num_processes, options)
         else
@@ -184,7 +184,7 @@ module Actir
           #             default - filesize
           #   TEXT
           #   ) { |type| options[:group_by] = type.to_sym }
-          opts.on("-e [online][qatest]", String, "set environment to run testcase, default: online") { |env| env = "online" if ((env != "qatest" && env != "online")|| (env == nil)); $env = env;}
+          opts.on("-e [online][qatest]", String, "set environment to run testcase, default: online") { |env| env = "online" if ((env != "qatest" && env != "online")||(env == nil)); $env = env}
           opts.on("-r [TIMES]", "--rerun [TIMES]", Integer, "rerun times for failure&error testcase, default: 0") { |n| options[:rerun] = n }
           opts.on("-u", "--update", "Update Baifubao's cookies") { options[:update] = true }
           opts.on("--verbose", "Print more output") { options[:verbose] = true }

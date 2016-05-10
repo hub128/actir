@@ -27,25 +27,24 @@ module Actir
         [
           times,
           0
-          #Actir::Config.get("config.test_mode.re_run")
         ].detect{|c| not c.to_s.strip.empty? }.to_i
       end
 
       #判断用例执行的环境是local还是remote
-      def determine_run_env(mode)
+      def determine_run_mode(mode)
         env_mode = :local
         #判断是否存在config.yaml配置文件，如果不存在，则test_mode给默认值
         if File.exist?(File.join($project_path, "config", "config.yaml")) 
           #刷新配置文件中的env配置项为remote模式，以防止本地调试代码改写上传后导致CI失败
           if mode
-            unless mode == /#{Actir::Config.get("config.test_mode.env")}/
+            unless mode == /#{Actir::Config.get("config.test_mode.mode")}/
               #同步修改配置文件，需要先将Symbol转换成String
               mode_str = ":" + mode.to_s
-              Actir::Config.set("config.test_mode.env", mode_str)
+              Actir::Config.set("config.test_mode.mode", mode_str)
             end
             env_mode = mode
           else
-            env_mode = Actir::Config.get("config.test_mode.env")
+            env_mode = Actir::Config.get("config.test_mode.mode")
           end
         else
           if mode

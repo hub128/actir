@@ -83,6 +83,7 @@ module Actir
           def execute_command(cmd, process_number, num_processes, options)
             env = (options[:env] || {}).merge(
               #"TEST_ENV_NUMBER" => test_env_number(process_number),
+              "env" => $env,
               "TEST_ENV_NUMBER" => process_number,
               "PARALLEL_TEST_GROUPS" => num_processes
             )

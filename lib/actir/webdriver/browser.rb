@@ -18,7 +18,7 @@ class Browser
   # 初始化函数
   #
   # 可以配置测试的mode：
-  #  1.:env
+  #  1.:mode
   #     :local  本地环境上测试
   #     :remote 远程测试环境上测试
   #  2.:browser
@@ -27,20 +27,20 @@ class Browser
   #  3.:agent wap页面的useragent类型 
   #     :iphone
   #     :android_phone
-  #  4.:address  当env为:remote时，url指定远程执行脚本的地址
+  #  4.:address  当mode为:remote时，url指定远程执行脚本的地址
   #
   def initialize(type = :www, *args)
     args = init_args(*args)
     @browser_type = args[:browser]
     @agent = args[:agent]
-    @env = args[:mode]
+    @mode = args[:mode]
     @window_size = args[:window_size]
-    if @env == :remote
+    if @mode == :remote
       @url = if args[:url]
         "http://#{args[:url]}/wd/hub"
       else
         #TO-DO ,远程模式没有传入IP,改成local模式
-        @env = :local
+        @mode = :local
         puts "selenium-node's IPAddress is null. switch to local mode"
       end
     end
@@ -90,8 +90,8 @@ class Browser
       else
         #若ENV为空，则读取配置文件，判断有无配置文件
         if config_exist
-          env = $config["config"]["test_mode"]["env"]
-          args[:mode] = (env == nil) ? :local : env
+          mode = $config["config"]["test_mode"]["mode"]
+          args[:mode] = (mode == nil) ? :local : mode
         else
           args[:mode] = :local
         end
@@ -127,7 +127,7 @@ class Browser
   # 打开普通www浏览器
   #
   def browser_www
-    case @env
+    case @mode
     when :local
       #本地chrome浏览器
       browser = Watir::Browser.new @browser_type
@@ -142,7 +142,7 @@ class Browser
     #重新设置窗口大小,不然phantomjs的ghost driver各种问题
     if @browser_type == :phantomjs
       browser.window.resize_to(PHANTOMJS_SIZE["width"], PHANTOMJS_SIZE["height"])
-    elsif @env == :remote
+    elsif @mode == :remote
       browser.window.resize_to(REMOTE_SIZE["width"], REMOTE_SIZE["height"])
     elsif @window_size != nil
       browser.window.resize_to(@window_size["width"], @window_size["height"])
@@ -160,7 +160,7 @@ class Browser
   # TO-DO: remote模式的phantomjs
   #
   def browser_wap
-    case @env
+    case @mode
     when :local
       driver = Actir::Webdriver.driver(:browser => @browser_type, :agent => @agent)
     when :remote

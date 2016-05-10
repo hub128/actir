@@ -19,7 +19,7 @@ Application Concurrence Test in Ruby.
 
 ## 使用须知
 
-####测试工程结构
+###测试工程结构
   - **config**：配置文件  
   &emsp;&emsp;|--- config.yaml：总体配置文件,test_mode相关的配置项必须要填  
   - **elements**：页面元素  
@@ -29,24 +29,25 @@ Application Concurrence Test in Ruby.
   &emsp;&emsp;|--- user：根据系统业务抽象出的角色及其Action  
   - **testcode**： 测试用例, 文件和用例方法都要以`test`开头, 执行之前需要初始化 Actir::Initializer.new(project_path)，`project_path`为测试工程根目录
 
-####浏览器对象
+###浏览器对象
 ``` ruby
 Browser.new(type, *args)
 ```
 Browser重新封装了Watir以及Selenium的初始化浏览器的方法  
 - **type**：指定初始化浏览器的类型,可以指定www/wap两类  
-- ***args**：
+- **args**：
   - `:browser`：浏览器类型,可以支持 :chrome/:phantomjs/:firefox, 默认为chrome  
     - `:agent`：user agent类型,可以支持 :iphone/:andriod_phone, 默认为iphone  
     - `:mode`：启动模式,支持 :local/:remote, 默认为local  
     - `:url`： 配合mode为remote的模式,指定远程机器的url,需要 IP+端口号  
 
-####Initializer自动加载工程文件
+###Initializer自动加载工程文件
 ``` ruby
 Actir::Initializer.new(project_path)
 ```
 -  自动require所有的elements内的文件并自动定义每个页面类对应的方法。如: 某页面类名为`LoginPage`,则会自动定义出`login_page`方法供`Browser`对象调用
-- 可以直接调用Watir::Browser的所有方法    
+- 可以直接调用Watir::Browser的所有方法  
+  
 ``` ruby
 browser = Browser.new(:wap)
 browser.login_page.login("xxx")
@@ -54,7 +55,7 @@ browser.login_page.login("xxx")
 browser.refresh
 ```
 
-####执行测试用例
+###执行测试用例
 
     $ actir [switches] [--] [files & folders]
     $ actir testcode/test_refund/test_full_refund.rb
