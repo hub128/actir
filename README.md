@@ -26,6 +26,7 @@ Application Concurrence Test in Ruby.
   &emsp;&emsp;|--- components：公用页面元素方法, 包装成`Module`  
   &emsp;&emsp;|--- pages：页面元素封装的方法,可以继承自`Actir::BasicPage`,已经封装了部分公用方法  
   &emsp;&emsp;|--- items：根据业务抽象出的类
+  
   &emsp;&emsp;|--- user：根据系统业务抽象出的角色及其Action  
   - **testcode**： 测试用例, 文件和用例方法都要以`test`开头, 执行之前需要初始化 Actir::Initializer.new(project_path)，`project_path`为测试工程根目录
 
