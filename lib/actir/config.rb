@@ -38,6 +38,9 @@ module Actir
       def get_content(filepath)
         f ||= filepath if valid?(filepath)
         File.open(f) {|handle| @hash_content = YAML.load(handle)}
+        if (is_multi_env_cfg?(@hash_content))
+          @hash_content = @hash_content[ENV["env"]]
+        end
         content = OpenStruct.new(@hash_content)
         content
       end
@@ -67,7 +70,7 @@ module Actir
           hash = load_file(file(file_name, config_path))
         end
         #判断是否存在 online 和 qatest 关键词，存在的话就读取当前env配置
-        if (hash.has_key?("online") || hash.has_key?("qatest"))
+        if (is_multi_env_cfg?(hash))
           #在key_array头上加入env配置
           key_array.unshift(determine_env)
         end
@@ -103,7 +106,7 @@ module Actir
           hash = load_file(file(file_name, config_path))
         end
         #判断是否存在 online 和 qatest 关键词，存在的话就读取当前env配置
-        if (hash.has_key?("online") || hash.has_key?("qatest"))
+        if (is_multi_env_cfg?(hash))
           #在key_array头上加入env配置
           key_array.unshift(determine_env)
         end
@@ -216,6 +219,11 @@ module Actir
         else
           ENV["env"]
         end
+      end
+
+      # 判断是否是多环境配置文件
+      def is_multi_env_cfg?(hash)
+        hash.has_key?("online") || hash.has_key?("qatest")
       end
 
     end
