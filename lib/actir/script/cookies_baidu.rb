@@ -139,7 +139,8 @@ module Actir
           end
         end
         @browser = Browser.new(:www, :url => address[0], :mode => $mode, :browser => :chrome, :window_size => nil)
-        @browser.goto "baifubao.com"
+        # @browser.goto "baifubao.com"
+        @browser.goto "https://www.baifubao.com/user/0/login/0"
         @browser 
       end
 
@@ -217,9 +218,6 @@ module Actir
         "  " + baifubao_BDUSS  + ": \n" + 
         "  " + baifubao_STOKEN + ": \n"
       end
-
-
-      private
 
 
       def baifubao_BDUSS

@@ -1,4 +1,5 @@
 require 'actir/webdriver/driver'
+require 'timeout'
 
 #
 # 初始化测试用浏览器
