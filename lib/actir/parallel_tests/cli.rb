@@ -198,6 +198,7 @@ module Actir
           # opts.on("--non-parallel", "execute same commands but do not in parallel, needs --exec") { options[:non_parallel] = true }
           # opts.on("--nice", "execute test commands with low priority") { options[:nice] = true }
           opts.on("-h", "--help", "Show this.") { puts opts; exit }
+          opts.on("-v", "--version", "Show version.") { puts Actir::VERSION; exit }
         end.parse!(argv)
 
         if options[:count] == 0
